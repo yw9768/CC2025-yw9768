@@ -5,10 +5,10 @@ function setup() {
 }
 
 function draw() {
-  background("rgba(129, 196, 174, 1)")// set background color
+  background("rgba(152, 190, 177, 1)")// set background color
 
-  fill("rgba(191, 242, 185, 1)"); // set the color of complex polygon
-  stroke("rgba(134, 172, 188, 1)"); // set the stroke color of this complex polygons
+  fill("rgba(203, 237, 200, 1)"); // set the color of complex polygon
+  stroke("rgba(131, 169, 185, 1)"); // set the stroke color of this complex polygons
   strokeWeight(stick) // set the strokeweight size
   
 
@@ -20,10 +20,10 @@ function draw() {
   vertex(60,301);
   endShape(CLOSE); 
 
-  fill("rgba(185, 225, 218, 1)"); // set the color of the first triangle
+  fill("rgba(199, 247, 239, 1)"); // set the color of the first triangle
   triangle(60,182,105,177,105,200);
 
-  fill("rgba(68, 85, 105, 1)"); // set the color of the second triangle
+  fill("rgba(162, 195, 233, 1)"); // set the color of the second triangle
   triangle(104,152,105,177,152,170);
 
   fill("rgba(68, 133, 244, 1)"); // set the color of the third triangle
@@ -37,7 +37,7 @@ function draw() {
   vertex(105,200);
   endShape(CLOSE); 
 
-  fill("rgba(235, 217, 180, 1)"); // set the color of complex polygon
+  fill("rgba(247, 240, 226, 1)"); // set the color of complex polygon
   beginShape(); // draw the third complex polygon
   vertex(105,200);
   vertex(153,219);
@@ -79,7 +79,7 @@ function draw() {
   vertex(153,336);
   endShape(CLOSE); 
 
-  fill("rgba(230, 201, 181, 1)"); // set the color of complex polygon
+  fill("rgba(233, 208, 192, 1)"); // set the color of complex polygon
   beginShape(); // draw the fifth complex polygon
   vertex(153,264);
   vertex(201,259);
@@ -88,7 +88,7 @@ function draw() {
   vertex(153,336);
   endShape(CLOSE); 
 
-  fill("rgba(214, 168, 247, 1)"); // set the color of complex polygon
+  fill("rgba(229, 235, 209, 1)"); // set the color of complex polygon
   beginShape(); // draw the fifth complex polygon
   vertex(151,99);
   vertex(299,152);
@@ -155,7 +155,7 @@ function draw() {
 
   fill("rgba(85, 118, 146, 1)"); // set the color of the seventh triangle
   triangle(297,222,345,240,296,246);
-  
+
 
 
 
