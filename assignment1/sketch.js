@@ -1,7 +1,7 @@
 let stick = 2; //variable to store strokeweight size
 
 function setup() {
-  createCanvas(400, 400);// set a 400px by 400ox canvas
+  createCanvas(400,400);// set a 400px by 400ox canvas
 }
 
 function draw() {

@@ -32,7 +32,24 @@ function draw() {
   // anything enclosed within push and pop only applies
   //within that enclosure
   push();// push indicates the beginning of an isolated
-  fill("pink")
+
+  if(mouseX>width/2 || mouseY>height/2){//of the text inside the ()is met..
+    fill("pink");
+    //run this code
+  } else if (mouseX,width/2 && mouseY<height/2){
+    fill ("orange");
+  }else if (mouseIsPressed == true){
+    fill ("blue");
+  } 
+  else {// otherwise...
+    fill("yellow");
+    //run this other code
+  }
+
+  // mouseIsPressed is a system variable that switches
+  // from false to true when the mouse is down
+
+
   translate(width/2,height/2);
   let angle;
   //map is a function that scales numbers proportionately
