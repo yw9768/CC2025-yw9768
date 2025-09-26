@@ -1,5 +1,5 @@
 let stick = 2; //variable to store strokeweight size
-
+let 
 function setup() {
   createCanvas(windowWidth,windowHeight);// set a 400px by 400ox canvas
 }
@@ -144,22 +144,6 @@ function draw() {
 
  fill("rgba(85, 118, 146, 1)"); // set the color of the seventh triangle
  triangle(width*0.7425,height*0.555,width*0.8625,height*0.6,width*0.74,height*0.615);
-
-
-
-
-
-  
-
-
-
-
-
-
-
-
-
-
 
 
 
