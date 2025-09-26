@@ -13,11 +13,11 @@ function draw() {
   
 
   beginShape(); // draw the first complex polygon
-  vertex(width*0.1425,height*0.4575);
-  vertex(width*0.2625,height*0.5);
-  vertex(width*0.2625,height*0.675);
-  vertex(width*0.3825,height*0.7225);
-  vertex(width*0.15,height*0.75);
+  vertex(width*0.0713,height*0.4575);
+  vertex(width*0.1313,height*0.5);
+  vertex(width*0.1313,height*0.675);
+  vertex(width*0.1913,height*0.7225);
+  vertex(width*0.0750,height*0.75);
   endShape(CLOSE);  
 
   fill("rgba(199, 247, 239, 1)"); // set the color of the first triangle
