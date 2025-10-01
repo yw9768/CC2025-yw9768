@@ -1,5 +1,5 @@
-let cellW = 75, cellH = 45; // set the width and height of bricks
-let margin = 20;            // set the blank space around the bricks
+let cellW = 75, cellH = 45; // set the width and height of grid cell
+let margin = 20;            // set the blank space between the grid and the canvas
 
 
 function windowResized() {
@@ -57,7 +57,7 @@ function draw() {
       const ang = t * maxAng;
 
       // make the actual brick size slightly smaller than
-      // the original size (leave a gap for a cleaner visual effect)
+      // the grid cell size (leave a gap for a cleaner visual effect)
       const bw = cellW * 0.9;
       const bh = cellH * 0.7;
 
