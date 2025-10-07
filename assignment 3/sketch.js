@@ -31,6 +31,7 @@ function draw() {
 
 
   // Start doing the outer loop (circular petals)
+  //It will reflect for second（） after that, with the outer petal pulsating once per second
   fill(236, 168, 196); // petal color
   for (let i = 0; i < outerCount; i++) { //loop 12 times (outerCount= 12 = number of petals)
     let thetaX = i * (360 / outerCount); //Calculate the angle of petals    
@@ -41,6 +42,7 @@ function draw() {
   }
 
   // start doing the Middle circle loop (rectangular petal)
+    //It will reflect for minute（） after that, the middle circle’s color shifts once per minute 
   fill(210, 115, 165); 
   for (let j = 0; j < middleCount; j++) { // loop 18 times (middleCount= 18 = number of rectangular petals)
     let thetaM = j * (360 / middleCount); 
@@ -57,6 +59,9 @@ function draw() {
   // start drawing a inverted triangle
   fill(70, 145, 245); // fill the inverted triangle
   let h = triSide * sqrt(3) / 2; // height of an equilateral triangle ≈ side * √3 / 2
+  //Regarding sqrt(), I found it on the webpage of p5.js reference. 
+  // This function is used to calculate the square root of a number.
+  //  More detailed comments are in rename.
 
   push();
   translate(width/2, height/2); // move the origin(0,0) to the center of the canvas
@@ -65,6 +70,7 @@ function draw() {
   rotate(PI);//Rotate the entire regular triangle by 180 degrees to invert it
 
   //draw the regular triangle (symmetric around 0,0)
+  //I provided a more detailed explanation of how to draw this triangle in the rename file
   triangle(
     -triSide/2,  h/2,   // left point
      triSide/2,  h/2,   // right point
