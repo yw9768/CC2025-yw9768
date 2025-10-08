@@ -19,7 +19,7 @@ for rectangle, each rectangle rotates to face outward with rotate(radians(angle)
 
 3. I drew a triangle at the origin (0,0) and rotated it to form the flower center. The process of how to draw this triangle and find the corresponding coordinates is presented in the following figure.
 
-![inverted triangle](.IMG_3166.jpg)
+![inverted triangle](https://github.com/yw9768/CC2025-yw9768/blob/main/assignment%203/regular%20triangle.jpg)
 
 
 #### New function I've used
