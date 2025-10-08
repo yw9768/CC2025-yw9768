@@ -42,6 +42,7 @@ function draw() {
     translate(width /2, height/2);
     circle(circleX, circleY, circleDiameter);
     pop();
+
   }
 
   // start doing the Middle circle loop (rectangular petal)
@@ -66,10 +67,8 @@ function draw() {
   // This function is used to calculate the square root of a number.
   //  More detailed comments are in rename.
 
-  
-  translate(width/2, height/2); // move the origin(0,0) to the center of the canvas
-
   push();
+  translate(width/2, height/2); // move the origin(0,0) to the center of the canvas
   rotate(PI);//Rotate the entire regular triangle by 180 degrees to invert it
 
   //draw the regular triangle (symmetric around 0,0)
