@@ -1,4 +1,8 @@
 
+// reflect second(): the outer petals pulsate once per second.  
+// reflect minute(): The color of the center circle switches every minute 
+// replect hour(): The background slowly shifts between day and night according to the hour 
+
 
 // Outer circle/ circular petals
 let outerCount = 12;// The number of petals on the outer circle
@@ -59,14 +63,14 @@ function draw() {
   // This function is used to calculate the square root of a number.
   //  More detailed comments are in rename.
 
-  push();
+  
   translate(width/2, height/2); // move the origin(0,0) to the center of the canvas
 
   push();
   rotate(PI);//Rotate the entire regular triangle by 180 degrees to invert it
 
   //draw the regular triangle (symmetric around 0,0)
-  //I provided a more detailed explanation of how to draw this triangle in the rename folder（with a picture）
+  //I provided a more detailed explanation of how to draw this triangle in the rename folder（with picture）
   triangle(
     -triSide/2,  h/2,   // left point
      triSide/2,  h/2,   // right point
@@ -74,6 +78,5 @@ function draw() {
   );
   pop();
 
-pop();
 
 }
