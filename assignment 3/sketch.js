@@ -14,10 +14,6 @@ let rectHeight = 40;  // The height of the rectangular petal in the center circl
 // Philandering (inverted triangle
 let triSide = 100; // Side length of this inverted triangle
 
-function windowResized() {
-  resizeCanvas(windowWidth, windowHeight);
-}// When the size of the browser window changes,
-//  reset the canvas size to fit the new size
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
@@ -70,7 +66,7 @@ function draw() {
   rotate(PI);//Rotate the entire regular triangle by 180 degrees to invert it
 
   //draw the regular triangle (symmetric around 0,0)
-  //I provided a more detailed explanation of how to draw this triangle in the rename file
+  //I provided a more detailed explanation of how to draw this triangle in the rename folder（with a picture）
   triangle(
     -triSide/2,  h/2,   // left point
      triSide/2,  h/2,   // right point
