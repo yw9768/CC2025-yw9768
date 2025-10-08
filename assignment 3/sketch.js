@@ -35,10 +35,13 @@ function draw() {
   fill(236, 168, 196); // petal color
   for (let i = 0; i < outerCount; i++) { //loop 12 times (outerCount= 12 = number of petals)
     let thetaX = i * (360 / outerCount); //Calculate the angle of petals    
-    let circleX = width /2 + cos(radians(thetaX)) * radiusX;
-    let circleY = height/2 + sin(radians(thetaX)) * radiusX;
+    let circleX = cos(radians(thetaX)) * radiusX;
+    let circleY = sin(radians(thetaX)) * radiusX;
 
+    push();
+    translate(width /2, height/2);
     circle(circleX, circleY, circleDiameter);
+    pop();
   }
 
   // start doing the Middle circle loop (rectangular petal)
@@ -77,6 +80,5 @@ function draw() {
      0,         -h/2    // top point
   );
   pop();
-
 
 }
