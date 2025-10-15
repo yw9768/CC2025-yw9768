@@ -1,7 +1,7 @@
 
 // reflect second(): the outer petals pulsate once per second.  
 // reflect minute(): The color of the center circle switches every minute 
-// replect hour(): The background slowly shifts between day and night according to the hour 
+// reflect hour(): The background slowly shifts between day and night according to the hour 
 
 
 // Outer circle/ circular petals
@@ -14,7 +14,7 @@ let middleCount = 18; // The number of rectangular petals in the middle circle
 let radiusY = 130; // Center circle radius
 let rectWeight = 24;// The width of the rectangular petal in the center circle
 let rectHeight = 40;  // The height of the rectangular petal in the center circle
-let lastMinute; //record the number of minutes when the last drawing was made
+let lastMinute; //store the last seen minute value to detect minute change
 let midR, midG, midB; //set a random color variable for the middle rectangular petal
 let dayR = 248, dayG = 248, dayB = 232;  // set the color of the day (bright)
 let nightR = 20,  nightG = 28,  nightB = 64;   // set the color of the night（dark）
@@ -26,15 +26,14 @@ let triSide = 100; // side length of this inverted triangle
 
 let prevMillis; // stores previous millis() value
 let s; // stores second() value on prev frame
-let milliseconds; //stores a number that goes
+let milliseconds; //stores elapsed milliseconds within the current second (millis() - prevMillis)
 
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
   noStroke();
-  rectMode(CENTER);//convenient rectangle at the back to rotate around themselves
-
-   
+  rectMode(CENTER);//draw rectangles from their center so they rotate around their own center
+   // rotate by thetaM so each rectangle's long side points radially outward
 }
 
 function draw() {
