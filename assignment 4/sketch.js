@@ -1,6 +1,12 @@
+//I have drawn three types of cookies,: marshmallow chocolate chip cookies,strawberry chip cookies, and avocado cookies.
+//These cookies respond via keypressed 
+// ("c" for marshmallow chocolate chip cookies, "s" for strawberry chip cookies, "a" for avocado cookie.) 
+//When the mouse clicks on any cookie, the cookie will disappear.
+//The inspiration for the avocado cookie is explained in rename folder
 let cookies = []; // empty array to hold on to cookie objects
 
-let padSize, padX, padY, padRadius;
+let padSize, padX, padY, padR;//set the variable of pad
+
 function setup() {
 	createCanvas(windowWidth, windowHeight);
   noStroke();
@@ -12,7 +18,7 @@ function setup() {
   padR = padSize / 2;
 }
 
-////draw the background and the pad laying on the table
+//draw the background and the pad laying on the table
 function draw() {
 	drawCookieBox();
 	for(let i = 0; i < cookies.length; i++){
@@ -31,13 +37,13 @@ function drawCookieBox() {
   ellipse(padX + 6, padY + 6, padSize, padSize);
   
   // draw the pad
-    stroke(190, 210, 220);
+  stroke(190, 210, 220);
   strokeWeight(2);
   fill(220, 235, 240);
   ellipse(padX, padY, padSize, padSize);
 
-  // draw the thicker outer edge of the pad
-  //(draw a smaller pad with a stroke of 3 inside the pad)
+  //visual thickness: draw an inner rim ring 
+  //(slightly smaller circle with thicker stroke)
   noFill();
   stroke(180, 200, 210);
   strokeWeight(3);
@@ -60,14 +66,14 @@ function drawCookieBox() {
 function keyPressed(){//map key to a cookie "type"
 	let type;
 	if(key == 'c'){
-		type = 'choco'; //sarshmallow chocolate cookies
+		type = 'choco'; //marshmallow chocolate chip cookies
 	} else if (key == 's'){
 		type = 'strawberry';//strawberry chip cookie
 	} else if (key == 'a'){
 		type = 'avocado';//avocado cookie
 	}
 
-   if (key == 'c' || key == 's' || key == 'a') {//only create cookie when key is c/s/m
+   if (key == 'c' || key == 's' || key == 'a') {//only create cookie when key is c/s/a
 let size = random(110, 160); // size is random within the range of 110 to 160
 let chipCount = floor(random(14, 29)); 
 //floor() rounds to the lower integer and the number of chips is random between 14 and 28
@@ -77,69 +83,57 @@ let newCookie = new Cookie(size, type, chipCount);
    }
    }
 
-  function mousePressed() { // runs ONCE when the mouse is clicked
-  let amIHovering = false;
+  // Click to delete a hovered cookie (delete first match and stop)
+  function mousePressed() {
   for(let i = 0; i < cookies.length; i++){
     if(cookies[i].hovering == true){
-      // Array.splice is a method for removing elements from an array
-      // parameter one is the element to remove
-      // parameter two is how many elements to remove
-      cookies.splice(i, 1); // erase element i from our array. erase only one element.
-      amIHovering = true; // flip the am I hovering variable to true, since the mouse click intersected with a cookie
+      cookies.splice(i, 1);
+      break; //stop once one is deleted
     }
   }
-  
-  if(amIHovering == false){ // if no hovering was detected in previous for loop...
-
-  
-
-}
 }
 
 class Cookie{
   constructor(size, type, chipCount) {//set up initial cookie state
-    this.cookieX = random(width);//generate random x at instantiation
-    this.cookieY = random(height);// generate random y at instantiation
     this.chipCount = chipCount;
     this.size = size;    
     this.type = type;
     this.hovering = false;
-
   
-  // 饼干半径
-  let cookieR = this.size / 2;
+  let cookieR = this.size / 2; //cookie radius
   
-  // 确保饼干完全在硅胶垫内（硅胶垫半径 - 饼干半径）
+  //make sure the cookies are completely inside the pad
   let maxDistance = padR - cookieR;
   
-  // 使用极坐标在圆内随机生成位置
   let angle = random(TWO_PI);
   let distance = random(maxDistance);
-  
-  this.cookieX = padX + distance * cos(angle);
-  this.cookieY = padY + distance * sin(angle);
 
+  //randomly generate the position where cookies appear in the pad
+  this.cookieX = padX + distance * cos(angle);//x-coordinate of cookie
+  this.cookieY = padY + distance * sin(angle);//y-coordinate of cookie
 
+  //start pre-generate the location of the chips
 	this.chips = [];
-
-for (let i = 0; i < this.chipCount; i++){
+  for (let i = 0; i < this.chipCount; i++){
   let angle = random(TWO_PI);
-  let distance = random(cookieR);  // ← 直接用 random
-  let px = distance * cos(angle);
-  let py = distance * sin(angle);
-  let d = random(this.size * 0.04, this.size * 0.09);
-  this.chips.push({x: px, y: py, diameter: d});
-}
+  let distance = random(cookieR);
+  let px = distance * cos(angle);//x-coordinate of chip
+  let py = distance * sin(angle);//y-coordinate of chip
+  let d = random(this.size * 0.04, this.size * 0.09);//diameter of chip
+  this.chips.push({x: px, y: py, diameter: d});//store the information of this chip (position and size) in chips array
+  //object contains: x position, y position, and diameter
+  }
   }
 
   
   drawCookie(){
-    // 新增：检测鼠标是否悬停在饼干上（和 bug 的 display 方法类似）
+    // respond to mousepressed; 
+    // check if the mouse is hovering over the cookie
     if(dist(mouseX, mouseY, this.cookieX, this.cookieY) < this.size / 2){
-      // 鼠标悬停在饼干上
+      //the mouse hovers over the cookie
       this.hovering = true;
     } else {
-      // 鼠标没有悬停在饼干上
+      //the mouse did not hover over the cookie
       this.hovering = false;
     }
 
@@ -156,82 +150,89 @@ for (let i = 0; i < this.chipCount; i++){
     }
    
 
-    // toppings by type 
-    if (this.type == "strawberry") { // start drawing toppings of strawberry chip cookies
-  fill(200, 130, 130);
-  ellipse(3, 3, this.size, this.size); // 稍微偏移制造阴影
+  // STRAWBERRY COOKIE
+    if (this.type == "strawberry") { 
+    // 1. Draw cookie shadow (for 3D effect)
+  fill(200, 130, 130);// Darker pink shadow
+  ellipse(3, 3, this.size, this.size); // Offset slightly down-right
   
-  // 主体
-  fill(240, 170, 170);
+  // 2. Draw cookie base
+  fill(240, 170, 170);// Light pink of cookie base
   ellipse(0, 0, this.size, this.size);
 
-for (let i = 0; i < this.chips.length; i++){
-	 fill(180, 50, 70);
-    ellipse(this.chips[i].x, this.chips[i].y, 
-            this.chips[i].diameter * 1.2, this.chips[i].diameter * 1.2);//草莓豆底色
- fill(220, 80, 100); // 草莓豆颜色
-        ellipse(this.chips[i].x, this.chips[i].y, this.chips[i].diameter, this.chips[i].diameter);
-      
-      }
-
-    } else if (this.type == "choco") {
-  // 1. 先画阴影（最底层）
-  fill(160, 110, 70);
-  ellipse(4, 4, this.size, this.size);
-  
-  // 2. 再画饼干主体
-  fill(190, 140, 90);
-  ellipse(0, 0, this.size, this.size);
-  
-  // 3. 然后画巧克力 chips（在饼干上面）
+  // 3. Draw all strawberry chips
   for (let i = 0; i < this.chips.length; i++){
-    fill(40, 25, 20); // 深色底
+  // Draw chip shadow first
+	fill(180, 50, 70); // Dark red shadow
+  ellipse(this.chips[i].x, this.chips[i].y,this.chips[i].diameter * 1.2, this.chips[i].diameter * 1.2);
+  // Draw strawberry chip on top
+  fill(220, 80, 100);  // Bright strawberry red 
+  ellipse(this.chips[i].x, this.chips[i].y, this.chips[i].diameter, this.chips[i].diameter);
+      
+  }
+
+  //CHOCOLATE MARSHMALLOW COOKIE
+    } else if (this.type == "choco") {
+  // 1. Draw cookie shadow
+  fill(160, 110, 70);  // Dark brown shadow
+  ellipse(4, 4, this.size, this.size);// Offset down-right
+  
+  // 2. Draw cookie base
+  fill(190, 140, 90); // Light chocolate brown
+  ellipse(0, 0, this.size, this.size);// choco chip
+  
+  // 3. Draw chocolate chips on top of cookie
+  for (let i = 0; i < this.chips.length; i++){
+    // Draw chip shadow 
+    fill(40, 25, 20); // Very dark brown
     ellipse(this.chips[i].x, this.chips[i].y, 
             this.chips[i].diameter * 1.3, this.chips[i].diameter * 1.3);
     
-    fill(60, 40, 30); // 巧克力色
+   // Draw chocolate chip 
+    fill(60, 40, 30); 
     ellipse(this.chips[i].x, this.chips[i].y, 
             this.chips[i].diameter * 1.1, this.chips[i].diameter * 1.1);
   }
   
-  // 4. 最后画棉花糖（最上层，盖住部分 chips）
-  let marshmallowD = this.size * 0.28;
-  rectMode(CENTER);
+   // 4. Draw marshmallow on top 
+  let marshmallowD = this.size * 0.28;// Marshmallow size
+  rectMode(CENTER);// Draw rectangle from center point
   
-  // 棉花糖阴影
-  fill(200, 200, 200);
+  // Draw marshmallow shadow
+  fill(200, 200, 200);// Light gray
   rect(2, 2, marshmallowD, marshmallowD, marshmallowD * 0.2);
   
-  // 棉花糖主体
-  fill(255, 250, 245);
+  // Draw marshmallow body
+  fill(255, 250, 245);// Off-white color
   rect(0, 0, marshmallowD, marshmallowD, marshmallowD * 0.2);
 
 
-
-   } else if (this.type == "avocado") {//start drawing toopings of avocado cookie
-
-  fill(140, 130, 90);//牛油果的底部阴影
+   // AVOCADO COOKIE
+   } else if (this.type == "avocado") {
+  // 1. Draw avocado shadow
+  fill(140, 130, 90); // Dark brown-gray
   ellipse(4, 4, this.size, this.size);
 
-  
-  fill(110, 120, 70); //牛油果绿色外皮
-  ellipse(0, 0, this.size, this.size);//draw a circle as the dark green skin of avocado
+  // 2. Draw avocado dark green skin (outer layer)
+  fill(110, 120, 70); // Dark green
+  ellipse(0, 0, this.size, this.size);
 
-  fill(190, 230, 160);  //ligther green 
-  ellipse(0, 0, this.size*0.85, this.size*0.92);//draw a smaller ellipse as avocado's flesh 
-
-  //start drawing pit
-  let pitD = this.size * 0.32;//设置果核直径大小
+  // 3. Draw avocado flesh (lighter green, slightly smaller)
+  fill(190, 230, 160);  // Light yellow-green
+  ellipse(0, 0, this.size*0.85, this.size*0.92);
   
-  // draw the shadow of the whole avocado pit
-  fill(90, 60, 35);
-  ellipse(1.5, 1.5, pitD, pitD);
+   // 4. Draw avocado pit (seed) in center
+  let pitD = this.size * 0.32;// set pit diameter 
   
-  //draw the brown pit in the center
-  fill(130, 85, 50);
-  ellipse(0, 0, pitD, pitD);
+  // Draw pit shadow
+  fill(90, 60, 35);// Very dark brown
+  ellipse(1.5, 1.5, pitD, pitD);// Slightly offset
   
-  // 再绘制一层果核暗部（增加立体感）
+  // Draw pit body
+  fill(130, 85, 50); // Medium brown
+  ellipse(0, 0, pitD, pitD);// Centered
+  
+  //Draw pit highlight at the top // Dark brown
   fill(105, 70, 40);
   ellipse(2.5, 2.5, pitD * 0.88, pitD * 0.88);
   
