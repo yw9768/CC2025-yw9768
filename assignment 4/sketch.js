@@ -11,7 +11,7 @@ function setup() {
 	createCanvas(windowWidth, windowHeight);
   noStroke();
 
-  //// set the size of the pad will draw later
+  // set the size of the pad will draw later
   padSize = height*0.9;
   padX = width / 2;
   padY = height / 2;
@@ -83,7 +83,7 @@ let newCookie = new Cookie(size, type, chipCount);
    }
    }
 
-  // Click to delete a hovered cookie (delete first match and stop)
+  // Click to delete a cookie 
   function mousePressed() {
   for(let i = 0; i < cookies.length; i++){
     if(cookies[i].hovering == true){
