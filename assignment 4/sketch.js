@@ -12,7 +12,7 @@ function setup() {
   noStroke();
 
   //// set the size of the pad will draw later
-  padSize = height*0.5;
+  padSize = height*0.9;
   padX = width / 2;
   padY = height / 2;
   padR = padSize / 2;
