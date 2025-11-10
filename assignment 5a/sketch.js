@@ -1,25 +1,26 @@
+// skull//
 
-// skull 1
-let skull1X, skull1Y, skull1BaseSize;
-let skull1NoiseSize, skull1Speed;
+// variables for skull 1
+let skull1X, skull1Y, skull1BaseSize;// set X position, Y position, and base size
+let skull1NoiseSize, skull1Speed;// set noise, speed
 
-// skull 2
+// variables for skull 2
 let skull2X, skull2Y, skull2BaseSize;
 let skull2NoiseSize, skull2Speed;
 
-// skull 3
+// variables for skull 3
 let skull3X, skull3Y, skull3BaseSize;
 let skull3NoiseSize, skull3Speed;
 
-// skull 4
+// variables for skull 4
 let skull4X, skull4Y, skull4BaseSize;
 let skull4NoiseSize, skull4Speed;
 
-// skull 5
+// variables for skull 5
 let skull5X, skull5Y, skull5BaseSize;
 let skull5NoiseSize, skull5Speed;
 
-// skull1 6
+// variables for skull1 6
 let skull6X, skull6Y, skull6BaseSize;
 let skull6NoiseSize, skull6Speed;
 
@@ -72,21 +73,27 @@ function setup() {
 function draw() {
   background(0);
   
-  displaySkull(skull1X, skull1Y, skull1BaseSize, skull1NoiseSize);
-  skull1NoiseSize = skull1NoiseSize + skull1Speed;
+  ////display skull 1
+  displaySkull(skull1X, skull1Y, skull1BaseSize, skull1NoiseSize);//draw skull 1
+  skull1NoiseSize = skull1NoiseSize + skull1Speed;//set the noise offset of skull 1 (like breath)
 
+  //display skull 2
   displaySkull(skull2X, skull2Y, skull2BaseSize, skull2NoiseSize);
   skull2NoiseSize = skull2NoiseSize + skull2Speed;
 
+  //display skull 3
   displaySkull(skull3X, skull3Y, skull3BaseSize, skull3NoiseSize);
   skull3NoiseSize = skull3NoiseSize + skull3Speed;
   
+  //display skull 4
   displaySkull(skull4X, skull4Y, skull4BaseSize, skull4NoiseSize);
   skull4NoiseSize = skull4NoiseSize + skull4Speed;
 
+  //display skull 5
   displaySkull(skull5X, skull5Y, skull5BaseSize, skull5NoiseSize);
   skull5NoiseSize = skull5NoiseSize + skull5Speed;
   
+  //display skull 6
   displaySkull(skull6X, skull6Y, skull6BaseSize, skull6NoiseSize);
   skull6NoiseSize = skull6NoiseSize + skull6Speed;
 }
@@ -95,7 +102,7 @@ function draw() {
 function displaySkull(skullX, skullY, baseSize, noiseSize) {
   push();
   
-  //Let the size of the skull vary between 0.5 and 1.6
+  //let the size of the skull vary between 0.5 and 1.6 （can be zoomed in and out）
   let skullSize = noise(noiseSize) * baseSize * 1.1 + baseSize * 0.5;
   
   translate(skullX, skullY);
@@ -105,10 +112,10 @@ function displaySkull(skullX, skullY, baseSize, noiseSize) {
 
   fill(255);
 
-  // The circular part of the head
+  // the circular part of the head
   ellipse(0, -skullSize * 0.3, skullSize, skullSize * 0.7);
   
-  // The rectangular part of the chin
+  // the rectangular part of the chin
   rect(-skullSize * 0.25, -skullSize * 0.2, skullSize * 0.5, skullSize * 0.37);
   
   // two eyes

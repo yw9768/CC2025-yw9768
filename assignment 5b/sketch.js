@@ -1,11 +1,12 @@
+// eye ball//
 
 let eyeCenterX, eyeCenterY;
 let eyeOrbitNoiseX, eyeOrbitNoiseY; // In response to noise, the entire eye moves
-let eyeIrisPulseT;//Iris pulse
-let eyeOrbitSpeed;//The speed of eye movement
+let eyeIrisPulseT;//Iris pulse (the red one)
+let eyeOrbitSpeed;//The speed of whole eye movement
 let irisColorNoiseT; // Iris color change (dark red - light red)
 
-// drunk walk of pupil
+// set the variables of drunk walk of pupil
 let pupilDrunkX, pupilDrunkY;
 let pupilDrunkR;
 
@@ -24,10 +25,10 @@ function setup() {
   eyeIrisPulseT = 0
   irisColorNoiseT = random(); 
   
-  
+ // Initialize pupil drunk walk position (relative to iris center)
   pupilDrunkX = 0;
   pupilDrunkY = 0;
-  pupilDrunkR = 14;
+  pupilDrunkR = 14;//Pupil radius
   
 }
 
@@ -94,7 +95,7 @@ function draw() {
   
   irisColorNoiseT = irisColorNoiseT + 0.02;//Set the speed of color change
   let irisColorCycle = noise(irisColorNoiseT); 
-  let irisR = lerp(150, 220, irisColorCycle);//set the change of two reds clor
+  let irisR = lerp(150, 220, irisColorCycle);//set the change of two reds color
   let irisG = lerp(20, 50, irisColorCycle);
   let irisB = lerp(20, 30, irisColorCycle);
   

@@ -1,12 +1,14 @@
-// candle 1
-let candle1X, candle1Y;
-let candle1FlamePhase;
+// candle//
 
-// candle 2
+// set varibles of candle 1
+let candle1X, candle1Y;
+let candle1FlamePhase; //set how much the flame flickers
+
+// set varibles of candle 2
 let candle2X, candle2Y;
 let candle2FlamePhase;
 
-// candle 3
+// set varibles of candle 3
 let candle3X, candle3Y;
 let candle3FlamePhase;
 
@@ -35,15 +37,15 @@ function draw() {
   
   // display and update candle 1
   displayCandle(candle1X, candle1Y, candle1FlamePhase);
-  candle1FlamePhase = candle1FlamePhase + 0.03;
+  candle1FlamePhase = candle1FlamePhase + 0.03;//fastest flame flicker 
   
   // display and update candle 2
   displayCandle(candle2X, candle2Y, candle2FlamePhase);
-  candle2FlamePhase = candle2FlamePhase + 0.025;
+  candle2FlamePhase = candle2FlamePhase + 0.025;//medium flame flicker 
   
   // display and update candle 3
   displayCandle(candle3X, candle3Y, candle3FlamePhase);
-  candle3FlamePhase = candle3FlamePhase + 0.02;
+  candle3FlamePhase = candle3FlamePhase + 0.02;//slowest flame flicker 
 }
 
 function displayCandle(candleX, candleY, flamePhase) {
@@ -63,6 +65,7 @@ function displayCandle(candleX, candleY, flamePhase) {
   let flameW = map(sin(flamePhase), -1, 1, 24, 28);
   
   // calculate flame color using noise() and lerp()
+  // color change: orange - green
   let t = millis() * 0.0005;
   let colorCycle = noise(t);
   let outerR = lerp(180, 100, colorCycle);
@@ -70,15 +73,19 @@ function displayCandle(candleX, candleY, flamePhase) {
   let outerB = lerp(0, 120, colorCycle);
   
   // draw flame
-  translate(candleX, candleY - 75);
+  translate(candleX, candleY - 80);
   
   // outer flame
   fill(outerR, outerG, outerB, 200);
   ellipse(0, -flameH * 0.25, flameW, flameH);
+  //I move the flame center upwards by 25% of the flame height,
+  // so 75% of the flame will be on top,
+  // and the remaining 25% of the flame overlapping with the wick at the bottom
+
   
   // inner flame (brighter)
-  fill(outerR + 30, outerG + 50, outerB + 60, 220);
-  ellipse(0, -flameH * 0.18, flameW * 0.6, flameH * 0.65);
+  fill(outerR + 30, outerG + 30, outerB + 30, 220);
+  ellipse(0, -flameH * 0.2, flameW * 0.6, flameH * 0.7);
   
   pop();
 }
