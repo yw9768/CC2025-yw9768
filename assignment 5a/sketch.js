@@ -112,26 +112,24 @@ function displaySkull(skullX, skullY, baseSize, noiseSize) {
 
   fill(255);
 
-  // the circular part of the head
+  // the circular part of the head（draw the head 30% above the center, using skullsize for drawing can achieve effective scaling）
   ellipse(0, -skullSize * 0.3, skullSize, skullSize * 0.7);
   
-  // the rectangular part of the chin
+  // the rectangular part of the chin (20% above center)
   rect(-skullSize * 0.25, -skullSize * 0.2, skullSize * 0.5, skullSize * 0.37);
   
   // two eyes
   fill(0);
-  ellipse(-skullSize * 0.25, -skullSize * 0.35, skullSize * 0.17, skullSize * 0.17);
-  ellipse(skullSize * 0.25, -skullSize * 0.35, skullSize * 0.17, skullSize * 0.17);
+  ellipse(-skullSize * 0.25, -skullSize * 0.35, skullSize * 0.17, skullSize * 0.17);//(25% left of center & 35% above center)
+  ellipse(skullSize * 0.25, -skullSize * 0.35, skullSize * 0.17, skullSize * 0.17);//(25% right of center & 35% above center)
   
   // teeth line 
   let toothWidth = skullSize * 0.025; 
-  rect(-skullSize * 0.3, skullSize * 0.05, toothWidth, skullSize * 0.15);
-  rect(-skullSize * 0.2, skullSize * 0.05, toothWidth, skullSize * 0.15);
-  rect(-skullSize * 0.1, skullSize * 0.05, toothWidth, skullSize * 0.15);
-  rect(0, skullSize * 0.05, toothWidth, skullSize * 0.15);
-  rect(skullSize * 0.1, skullSize * 0.05, toothWidth, skullSize * 0.15);
-  rect(skullSize * 0.2, skullSize * 0.05, toothWidth, skullSize * 0.15);
-  rect(skullSize * 0.3, skullSize * 0.05, toothWidth, skullSize * 0.15);
+  rect(-skullSize * 0.2, skullSize * 0.05, toothWidth, skullSize * 0.15);// the left one black tooth line
+  rect(-skullSize * 0.1, skullSize * 0.05, toothWidth, skullSize * 0.15);// the left second black tooth line
+  rect(0, skullSize * 0.05, toothWidth, skullSize * 0.15);// the middle one tooth line
+  rect(skullSize * 0.1, skullSize * 0.05, toothWidth, skullSize * 0.15);// the forth tooth line
+  rect(skullSize * 0.2, skullSize * 0.05, toothWidth, skullSize * 0.15);// the right one tooth line
   
   pop();
 }
