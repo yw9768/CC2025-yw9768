@@ -32,50 +32,47 @@ function gotFaces(results) {
 }
 
 function draw() {
-  drawBackground();
+  drawBackground();//绘制情绪北京
 
-  // 1. 计算逻辑
+  //2. 计算圣诞老人的位置和情绪状态
   let data = updateSantaLogic();
 
-  // 2. 绘制圣诞老人
+  // 3. 根据情绪和强度绘制圣诞老人
   drawSanta(data.emotion, data.intensity);
 }
 
-function windowResized() {
-  resizeCanvas(windowWidth, windowHeight);
-}
-
-// ==================== 核心逻辑 ====================
 
 function updateSantaLogic() {
-  let currentEmotion = "neutral";
-  let intensity = 0; 
+  let currentEmotion = "neutral";// 初始默认情绪:中性
+  let intensity = 0; //默认初始情绪强度
   let cx = width / 2;
   let cy = height / 2;
 
   if (faces.length > 0) {
     let face = faces[0];
     
-    // A. 鼻尖控制
+    // A. 使用鼻尖位置控制圣诞老人移动
     let nose = face.keypoints[4]; 
     let targetX = map(nose.x, 0, video.width, 0, width);
     let targetY = map(nose.y, 0, video.height, 0, height);
     
+    //// 使用线性插值让圣诞老人平滑移动(不会瞬间跳跃)
     santaX = lerp(santaX, targetX, 0.1);
     santaY = lerp(santaY, targetY, 0.1);
 
-    // 计算距离中心的距离
+    // 计算圣诞老人与画布中心的距离
     let d = dist(santaX, santaY, cx, cy);
 
-    // 定义中心区域阈值 (100像素)
+    // 定义中心区域阈值为(100像素)
     let centerThreshold = 100;
 
-    if (d < centerThreshold) {
+    //根据位置判断情绪
+    if (d < centerThreshold) {//在中心区域，情绪为"neutral"
       currentEmotion = "neutral";
       intensity = 0;
     } else {
-      // 判断象限
-      if (santaX < cx && santaY < cy) currentEmotion = "anxiety"; // 左上
+      // 不在中心区域，根据象限判断情绪
+      if (santaX < cx && santaY < cy) currentEmotion = "angry"; // 左上
       else if (santaX >= cx && santaY < cy) currentEmotion = "happy"; // 右上
       else if (santaX < cx && santaY >= cy) currentEmotion = "sad";   // 左下
       else currentEmotion = "calm";  // 右下
@@ -108,7 +105,7 @@ function drawBackground() {
     // 绘制象限标签文字 - 放在每个象限的正中央
   fill(0, 50); // 半透明黑色
    textSize(48); // 更大的字体
-   text("ANXIETY", cx / 2, cy / 2);           // 左上象限中心
+   text("ANGRY", cx / 2, cy / 2);           // 左上象限中心
    text("HAPPY", cx + cx / 2, cy / 2);        // 右上象限中心
    text("SAD", cx / 2, cy + cy / 2);          // 左下象限中心
    text("CALM", cx + cx / 2, cy + cy / 2);    // 右下象限中心
@@ -128,7 +125,7 @@ function drawSanta(emotion, intensity) {
   // 焦虑颤抖
   let shakeX = 0;
   let shakeY = 0;
-  if (emotion === "anxiety") {
+  if (emotion === "angry") {
     let shakeAmount = intensity * 8; 
     shakeX = random(-shakeAmount, shakeAmount);
     shakeY = random(-shakeAmount, shakeAmount);
@@ -184,7 +181,7 @@ function drawSanta(emotion, intensity) {
     arc(25, -35, 30, arch, PI, 0);
   
   } 
-  else if (emotion === "anxiety") {
+  else if (emotion === "angry") {
     let slope = 12 + intensity * 15;
     line(-40, -35 - slope, -5, -25);
     line(5, -25, 40, -35 - slope);
@@ -236,7 +233,7 @@ function drawSanta(emotion, intensity) {
     ellipse(-32, -12 + droop + 3, 5, 5);
     ellipse(32, -12 + droop + 3, 5, 5);
   }
-  else if (emotion === "anxiety") {
+  else if (emotion === "angry") {
     // 愤怒/焦虑：瞪眼
     noStroke();
     fill(255);
@@ -287,7 +284,7 @@ function drawSanta(emotion, intensity) {
   } else if (emotion === "sad") {
     let curve = 20 + intensity * 30;
     arc(0, 45, 30, curve, PI, 0);
-  } else if (emotion === "anxiety") {
+  } else if (emotion === "angry") {
     beginShape();
     let shake = intensity * 5;
     vertex(-15, 40); 
