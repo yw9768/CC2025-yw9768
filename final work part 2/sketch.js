@@ -180,16 +180,16 @@ function drawBackground() {
   strokeWeight(6);
   
   if (emotion == "happy") {//// 开心的眉毛上扬成弧形,强度越大弧度越大
-    let arch = 35 + intensity * 20; //35为基础弧度
+    let arch = 35 + intensity * 15; //35为基础弧度
     arc(-25, -35, 30, arch, PI, 0); 
     arc(25, -35, 30, arch, PI, 0);
   
   } 
   else if (emotion === "angry") {
     let slope = 12 + intensity * 15;
-    line(-40, -35 - slope, -5, -25);
+    line(-40, -35 - slope, -5, -25);//-35为眉毛基础高度
     line(5, -25, 40, -35 - slope);
-    
+
   } else if (emotion === "sad") {
   // 伤心:固定的下垂八字眉(外低内高)
   line(-40, -30, -5, -35); // 左眉(外低内高,向上倾斜)
@@ -201,12 +201,12 @@ function drawBackground() {
     line(10, -35, 40, -35); 
   }
 
-  // --- B. 眼睛 & 脸颊 ---
+  //绘制眼睛和脸颊
   
   // Calm 专属红晕：随强度加深
   if (emotion === "calm") {
     noStroke();
-    fill(255, 150, 180, 50 + intensity * 150); // 离越远，红晕越明显
+    fill(255, 150, 180, 100); // 离越远，红晕越明显
     ellipse(-35, -5, 25, 15); 
     ellipse(35, -5, 25, 15);
   }
