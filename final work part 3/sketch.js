@@ -1,373 +1,405 @@
-// 情绪类型变量 (使用字符串即可)
-const EMOTION_ANXIETY = 'anxiety';
-const EMOTION_HAPPY = 'happy';
-const EMOTION_SAD = 'sad';
-const EMOTION_CALM = 'calm';
-const EMOTION_NEUTRAL = 'neutral'; // 新增中性
+// === 全局变量 ===
+let santaX = 0;
+let santaY = 0;
 
-// 全局变量
-let currentEmotion = EMOTION_CALM;
-let quote = "拖动圣诞老人的脸到不同区域，体验不同的情绪！";
+// ML5 变量
+let video;
+let faceMesh;
+let faces = [];
+let options = { maxFaces: 1, refineLandmarks: false, flipped: true };
 
-let facePos = { x: 0, y: 0 };
-let isDragging = false;
+// 嘴巴交互变量
+let mouthOpenAmount = 0;
+let isMouthOpen = false;
 
-// 目标参数 (我们希望达到的数值)
-let targetParams = {
-  eyeOpenness: 1,
-  mouthCurve: 0,
-  eyebrowAngle: 0,
-  tremble: 0,
-  pupilSize: 1
-};
+// 特效粒子系统
+let particles = []; 
+let modelIsLoaded = false;
 
-// 当前参数 (目前动画进行到的数值)
-let currentParams = {
-  eyeOpenness: 1,
-  mouthCurve: 0,
-  eyebrowAngle: 0,
-  tremble: 0,
-  pupilSize: 1
-};
+function preload() {
+faceMesh = ml5.faceMesh(options);
+}
 
 function setup() {
-  createCanvas(windowWidth, windowHeight);
-  textAlign(CENTER, CENTER);
-  rectMode(CENTER);
-  
-  // 初始化脸部位置在中心
-  facePos.x = width / 2;
-  facePos.y = height / 2;
-  
-  // 一开始就判断一次情绪
-  determineEmotion(facePos.x, facePos.y);
+createCanvas(windowWidth, windowHeight);
+rectMode(CENTER);
+textAlign(CENTER, CENTER);
+noStroke();
+
+video = createCapture(VIDEO);
+video.size(640, 480);
+video.hide();
+
+faceMesh.detectStart(video, gotFaces);
+
+santaX = width / 2;
+santaY = height / 2;
+}
+
+function gotFaces(results) {
+faces = results;
+if (!modelIsLoaded && faces.length > 0) {
+modelIsLoaded = true;
+console.log("模型已启动!");
+}
 }
 
 function draw() {
-  // 1. 计算插值 (使用你学过的 lerp 让表情变化变平滑)
-  updateFaceParams();
-  
-  // 2. 绘制背景
-  drawBackground();
-  
-  // 3. 处理交互
-  handleInteraction();
-  
-  // 4. 绘制 UI 文字
-  drawUI();
-  
-  // 5. 绘制圣诞老人
-  drawSanta();
+drawBackground();
+
+// 1. 核心逻辑 (计算位置、情绪)
+let interactData = updateInteraction();
+
+// 2. 【关键修改】先画圣诞老人！
+// 这样后面画的粒子才会出现在他“上面”，而不是背后
+drawSanta(interactData.emotion, interactData.intensity);
+
+// 3. 【关键修改】再画特效
+// 这样特效会盖住脸，看起来是从嘴/眼睛里出来的
+if (interactData.emotion === "anxiety" && isMouthOpen) {
+drawGlitchEffect(); 
+} else {
+updateAndDrawParticles(); 
+}
 }
 
 function windowResized() {
-  resizeCanvas(windowWidth, windowHeight);
+resizeCanvas(windowWidth, windowHeight);
 }
 
-// ==================== 逻辑函数 ====================
+// ==================== 逻辑处理核心 ====================
 
-function determineEmotion(x, y) {
-  let centerX = width / 2;
-  let centerY = height / 2;
-  
-  // 使用 dist() 计算当前脸的位置距离中心有多远
-  let d = dist(x, y, centerX, centerY);
-  
-  let newEmotion = EMOTION_CALM;
+function updateInteraction() {
+let currentEmotion = "neutral";
+let intensity = 0; 
+let cx = width / 2;
+let cy = height / 2;
 
-  // 核心逻辑：如果距离中心小于 80 像素，就是中性 (Neutral)
-  if (d < 80) {
-    newEmotion = EMOTION_NEUTRAL;
-    // 设置中性表情参数：平嘴、正常眼睛、无眉毛角度
-    setParams(0.9, 0, 0, 0, 1.0); 
-  } 
-  // 否则，判断四个象限
-  else if (x < centerX && y < centerY) {
-    newEmotion = EMOTION_ANXIETY; // 左上
-    setParams(1.2, -0.2, -0.5, 1, 0.5);
-  } 
-  else if (x >= centerX && y < centerY) {
-    newEmotion = EMOTION_HAPPY;   // 右上
-    setParams(0.9, 1, 0.2, 0, 1.2);
-  } 
-  else if (x < centerX && y >= centerY) {
-    newEmotion = EMOTION_SAD;     // 左下
-    setParams(0.6, -1, 0.8, 0, 1);
-  } 
-  else {
-    newEmotion = EMOTION_CALM;    // 右下
-    setParams(0.4, 0.1, 0, 0, 1);
-  }
+if (faces.length > 0) {
+let face = faces[0];
+// A. 更新位置
+let nose = face.keypoints[4]; 
+let targetX = map(nose.x, 0, video.width, 0, width);
+let targetY = map(nose.y, 0, video.height, 0, height);
+santaX = lerp(santaX, targetX, 0.1);
+santaY = lerp(santaY, targetY, 0.1);
 
-  // 如果情绪改变了，更新语录
-  if (newEmotion !== currentEmotion) {
-    currentEmotion = newEmotion;
-    updateQuote(newEmotion);
-  }
+// B. 计算嘴巴
+let upperLip = face.keypoints[13];
+let lowerLip = face.keypoints[14];
+let mouthDist = dist(upperLip.x, upperLip.y, lowerLip.x, lowerLip.y);
+mouthOpenAmount = map(mouthDist, 0, 40, 0, 1, true);
+isMouthOpen = mouthOpenAmount > 0.25; 
+
+// C. 判断区域
+if (santaX < cx && santaY < cy) currentEmotion = "anxiety"; 
+else if (santaX >= cx && santaY < cy) currentEmotion = "happy"; 
+else if (santaX < cx && santaY >= cy) currentEmotion = "sad"; 
+else currentEmotion = "calm"; 
+
+// D. 计算强度
+let d = dist(santaX, santaY, cx, cy);
+intensity = map(d, 0, width/2, 0, 1, true);
 }
 
-// 简单的辅助函数，用来设置目标参数
-function setParams(eye, mouth, brow, tremble, pupil) {
-  targetParams.eyeOpenness = eye;
-  targetParams.mouthCurve = mouth;
-  targetParams.eyebrowAngle = brow;
-  targetParams.tremble = tremble;
-  targetParams.pupilSize = pupil;
+// E. 生成特效粒子
+if (isMouthOpen) {
+spawnParticles(currentEmotion);
 }
 
-function updateFaceParams() {
-  // 使用 lerp() 让数值慢慢接近目标，产生动画效果
-  let amt = 0.1;
-  currentParams.eyeOpenness = lerp(currentParams.eyeOpenness, targetParams.eyeOpenness, amt);
-  currentParams.mouthCurve = lerp(currentParams.mouthCurve, targetParams.mouthCurve, amt);
-  currentParams.eyebrowAngle = lerp(currentParams.eyebrowAngle, targetParams.eyebrowAngle, amt);
-  currentParams.tremble = lerp(currentParams.tremble, targetParams.tremble, amt);
-  currentParams.pupilSize = lerp(currentParams.pupilSize, targetParams.pupilSize, amt);
+return { emotion: currentEmotion, intensity: intensity };
 }
 
-function handleInteraction() {
-  if (mouseIsPressed) {
-    // 检查鼠标是否在脸附近
-    let d = dist(mouseX, mouseY, facePos.x, facePos.y);
-    if (d < 120 || isDragging) {
-      isDragging = true;
-      // 使用 lerp 让脸跟随鼠标，有一点延迟感
-      facePos.x = lerp(facePos.x, mouseX, 0.25);
-      facePos.y = lerp(facePos.y, mouseY, 0.25);
-      
-      // 限制脸不出屏幕
-      facePos.x = constrain(facePos.x, 60, width - 60);
-      facePos.y = constrain(facePos.y, 60, height - 60);
+// ==================== 特效系统 (修改了坐标逻辑) ====================
 
-      determineEmotion(facePos.x, facePos.y);
-    }
-  } else {
-    isDragging = false;
-  }
+function spawnParticles(emotion) {
+// 控制生成速度
+if (frameCount % 5 !== 0 && emotion !== "anxiety") return;
+
+// 1. HAPPY (嘴巴吐出)
+if (emotion === "happy") {
+let type = random() > 0.5 ? "text" : "shape";
+// 嘴巴坐标大概在 santaY + 35
+particles.push(new Particle(santaX, santaY + 35, "happy", type));
+} 
+// 2. SAD (【关键修改】眼睛流出)
+else if (emotion === "sad") {
+// 只有 SAD 的时候，我们一次生成两个粒子，分别对应左右眼
+// 左眼 (-25, -15), 右眼 (25, -15)
+particles.push(new Particle(santaX - 25, santaY - 15, "sad", "tear")); // 左眼
+particles.push(new Particle(santaX + 25, santaY - 15, "sad", "tear")); // 右眼
+} 
+// 3. CALM (【关键修改】禅意呼吸圈)
+else if (emotion === "calm") {
+// 生成慢一点，要有节奏感
+if (frameCount % 10 === 0) {
+particles.push(new Particle(santaX, santaY + 35, "calm", "breath"));
+}
+}
 }
 
-function updateQuote(emotion) {
-  if (emotion === EMOTION_ANXIETY) quote = "深呼吸，一切都会好起来的。焦虑是暂时的。";
-  if (emotion === EMOTION_HAPPY) quote = "快乐是最好的礼物！让笑容继续绽放吧！";
-  if (emotion === EMOTION_SAD) quote = "悲伤也是情绪的一部分，允许自己感受它。";
-  if (emotion === EMOTION_CALM) quote = "平静的心灵是最珍贵的宝藏。享受这一刻的宁静。";
-  if (emotion === EMOTION_NEUTRAL) quote = "保持中立与平衡，感受当下的存在。"; // 新语录
+function updateAndDrawParticles() {
+for (let i = particles.length - 1; i >= 0; i--) {
+let p = particles[i];
+p.update();
+p.display();
+if (p.isDead()) {
+particles.splice(i, 1);
+}
+}
 }
 
-// ==================== 绘制函数 ====================
+class Particle {
+constructor(x, y, emotion, type) {
+this.x = x + random(-5, 5); // 稍微有点随机偏移
+this.y = y;
+this.emotion = emotion;
+this.type = type; 
+this.alpha = 255;
+// Happy: 还是四散飞溅
+if (emotion === "happy") {
+this.vx = random(-4, 4);
+this.vy = random(2, 6); // 向下喷
+this.size = random(15, 25);
+this.color = color(random(255), random(255), random(255));
+this.text = "HA";
+}
+// Sad: 向上飞的眼泪 (反重力)
+else if (emotion === "sad") {
+this.vx = random(-0.5, 0.5); // 横向偏移小一点
+this.vy = random(-3, -6); // 快速向上飞
+this.size = random(5, 10);
+this.color = color(100, 150, 255);
+}
+// Calm: 呼吸圈 (白色，扩散)
+else if (emotion === "calm") {
+this.x = x; // 修正回正中心，不要随机偏移
+this.vx = 0;
+this.vy = 0.5; // 缓慢下沉一点点
+this.size = 10; 
+this.growth = 1.5; // 缓慢变大
+this.color = color(255, 255, 255);
+this.alpha = 150; // 初始半透明
+}
+}
+
+update() {
+this.x += this.vx;
+this.y += this.vy;
+this.alpha -= 3; 
+
+if (this.emotion === "calm") {
+this.size += this.growth; 
+this.alpha -= 1.5; // 消失得慢一点
+}
+}
+
+display() {
+noStroke();
+if (this.type === "text") {
+fill(red(this.color), green(this.color), blue(this.color), this.alpha);
+textSize(this.size);
+textStyle(BOLD);
+text(this.text, this.x, this.y);
+} 
+else if (this.type === "shape") {
+fill(red(this.color), green(this.color), blue(this.color), this.alpha);
+rect(this.x, this.y, this.size, this.size);
+} 
+else if (this.type === "tear") {
+fill(red(this.color), green(this.color), blue(this.color), this.alpha);
+ellipse(this.x, this.y, this.size, this.size * 1.5); 
+} 
+else if (this.type === "breath") {
+// 禅意呼吸圈：空心圆
+noFill();
+stroke(255, this.alpha);
+strokeWeight(3);
+circle(this.x, this.y, this.size);
+}
+}
+
+isDead() {
+return this.alpha <= 0;
+}
+}
+
+function drawGlitchEffect() {
+// 焦虑：故障特效覆盖全屏
+for (let i = 0; i < 15; i++) {
+let h = random(5, 50);
+let y = random(height);
+let offset = random(-20, 20);
+fill(random(255), random(255), random(255), 150);
+noStroke();
+rect(width/2 + offset, y, width, h);
+// 模拟信号线
+fill(0, 80);
+rect(width/2, random(height), width, 2); 
+}
+}
+
+// ==================== 绘制背景 ====================
 
 function drawBackground() {
-  noStroke();
-  let cx = width / 2;
-  let cy = height / 2;
+let cx = width / 2;
+let cy = height / 2;
+noStroke();
+fill(220, 210, 230); rect(cx/2, cy/2, cx, cy); 
+fill(255, 245, 200); rect(cx + cx/2, cy/2, cx, cy); 
+fill(200, 220, 240); rect(cx/2, cy + cy/2, cx, cy); 
+fill(210, 240, 225); rect(cx + cx/2, cy + cy/2, cx, cy); 
 
-  // 定义颜色
-  let cAnxiety = color(220, 210, 230);
-  let cHappy = color(255, 245, 200);
-  let cSad = color(200, 220, 240);
-  let cCalm = color(210, 240, 225);
+fill(0, 50);
+noStroke();
+textSize(20);
+text("ANXIETY", 60, 30);
+text("HAPPY", width - 60, 30);
+text("SAD", 60, height - 30);
+text("CALM", width - 60, height - 30);
 
-  // 绘制四个背景矩形
-  fill(cAnxiety); rect(cx/2, cy/2, cx, cy);
-  fill(cHappy);   rect(cx + cx/2, cy/2, cx, cy);
-  fill(cSad);     rect(cx/2, cy + cy/2, cx, cy);
-  fill(cCalm);    rect(cx + cx/2, cy + cy/2, cx, cy);
-
-  // 绘制当前选中区域的高亮圆圈
-  let activeColor = color(255, 100); // 默认白色半透明
-  if (currentEmotion === EMOTION_ANXIETY) activeColor = color(180, 160, 200, 150);
-  if (currentEmotion === EMOTION_HAPPY) activeColor = color(255, 220, 100, 150);
-  if (currentEmotion === EMOTION_SAD) activeColor = color(150, 180, 220, 150);
-  if (currentEmotion === EMOTION_CALM) activeColor = color(160, 220, 180, 150);
-  if (currentEmotion === EMOTION_NEUTRAL) activeColor = color(255, 255, 255, 180); // 中性时更亮
-
-  fill(activeColor);
-  circle(facePos.x, facePos.y, 300);
-  
-  // 画中间的虚线提示圈 (既然不能用 drawingContext，我们用点代替虚线)
-  // 这是为了提示用户这里有个“中性区”
-  noFill();
-  stroke(255, 150);
-  strokeWeight(2);
-  circle(width/2, height/2, 160); // 80半径 * 2 = 160直径
-
-  // 分割线
-  stroke(255, 150);
-  strokeWeight(4);
-  line(cx, 0, cx, height);
-  line(0, cy, width, cy);
-  
-  // 绘制象限文字
-  noStroke();
-  fill(0, 50);
-  textSize(24);
-  textStyle(BOLD);
-  text("ANXIETY", width * 0.25, 40);
-  text("HAPPY", width * 0.75, 40);
-  text("SAD", width * 0.25, height / 2 + 40);
-  text("CALM", width * 0.75, height / 2 + 40);
+stroke(255, 150);
+strokeWeight(4);
+line(cx, 0, cx, height);
+line(0, cy, width, cy);
 }
 
-function drawUI() {
-  // 标题
-  textSize(48);
-  fill(0, 150);
-  textStyle(BOLD);
-  // toUpperCase() 把文字变大写
-  text(currentEmotion.toUpperCase(), width / 2, height / 2);
+// ==================== 绘制圣诞老人 ====================
 
-  // 底部文字框
-  let boxW = min(width * 0.9, 600);
-  let boxH = 120;
-  let boxX = width / 2;
-  let boxY = height - 80;
-
-  rectMode(CENTER);
-  fill(255, 240);
-  stroke(255);
-  strokeWeight(2);
-  rect(boxX, boxY, boxW, boxH, 20);
-
-  noStroke();
-  fill(50);
-  textSize(18);
-  textStyle(NORMAL);
-  text(quote, boxX, boxY, boxW - 40, boxH - 20); // 这里的rectMode是CENTER，text会自动换行
+function drawSanta(emotion, intensity) {
+push();
+let shakeX = 0;
+let shakeY = 0;
+if (emotion === "anxiety") {
+let shakeAmount = intensity * 10; 
+shakeX = random(-shakeAmount, shakeAmount);
+shakeY = random(-shakeAmount, shakeAmount);
 }
 
-function drawSanta() {
-  push(); // 保存当前坐标系
-  
-  // 颤抖效果 (使用 random)
-  let shakeX = 0;
-  let shakeY = 0;
-  if (currentParams.tremble > 0.1) {
-    shakeX = random(-2, 2) * currentParams.tremble;
-    shakeY = random(-2, 2) * currentParams.tremble;
-  }
+translate(santaX + shakeX, santaY + shakeY); 
+scale(1.2); 
 
-  translate(facePos.x + shakeX, facePos.y + shakeY);
-  scale(1.2);
+// --- 1. 帽子 ---
+fill(220, 40, 40);
+noStroke();
+beginShape();
+curveVertex(60, -40); curveVertex(60, -40);
+curveVertex(40, -90);
+curveVertex(0, -110);
+curveVertex(-50, -90);
+curveVertex(-90, -40); curveVertex(-90, -40);
+endShape();
+fill(255);
+ellipse(-90, -40, 28, 28);
 
-  // --- 保持你原来的好看画法 ---
-  
-  // 帽子
-  fill(220, 40, 40);
-  noStroke();
-  beginShape();
-  vertex(-60, -40);
-  vertex(60, -40);
-  bezierVertex(50, -100, -20, -130, -70, -60); // 保持贝塞尔曲线让帽子圆润
-  endShape(CLOSE);
-  
-  // 帽子球
-  fill(255);
-  ellipse(-70, -60, 25, 25);
+// --- 2. 脸 ---
+fill(255, 220, 200);
+noStroke();
+ellipse(0, 0, 120, 120);
 
-  // 脸
-  fill(255, 220, 200);
-  noStroke();
-  ellipse(0, 0, 120, 120);
+// --- 3. 胡子 ---
+fill(245, 245, 250);
+noStroke();
+beginShape();
+curveVertex(-60, 0); curveVertex(-60, 0);
+curveVertex(-60, 60);
+curveVertex(-35, 105);
+curveVertex(0, 110);
+curveVertex(35, 105);
+curveVertex(60, 60);
+curveVertex(60, 0); curveVertex(60, 0);
+endShape(CLOSE);
+fill(255);
+arc(-20, 20, 40, 30, PI + 0.5, 0);
+arc(20, 20, 40, 30, PI, -0.5);
 
-  // 胡子
-  fill(245, 245, 250);
-  beginShape();
-  vertex(-60, 0);
-  bezierVertex(-70, 80, -30, 110, 0, 110);
-  bezierVertex(30, 110, 70, 80, 60, 0);
-  endShape(CLOSE);
-  
-  // 胡须
-  fill(255);
-  arc(-20, 20, 40, 30, PI + 0.5, 0);
-  arc(20, 20, 40, 30, PI, -0.5);
+// --- 4. 眼睛 ---
+fill(0);
+ellipse(-25, -15, 12, 15); 
+ellipse(25, -15, 12, 15);
+fill(255);
+ellipse(-23, -17, 4, 4);
+ellipse(27, -17, 4, 4);
 
-  // 眼睛
-  let eyeY = -15;
-  let eyeX = 25;
-  let open = currentParams.eyeOpenness * 15;
-  
-  fill(0);
-  ellipse(-eyeX, eyeY, 12, open);
-  ellipse(eyeX, eyeY, 12, open);
+// --- 5. 动态五官 ---
+drawDynamicFeatures(emotion, intensity);
 
-  // 眼睛高光
-  if (currentParams.pupilSize > 1.1) {
-    fill(255);
-    ellipse(-eyeX + 2, eyeY - 2, 4, 4);
-    ellipse(eyeX + 2, eyeY - 2, 4, 4);
-  }
+// --- 6. 帽子白边 ---
+fill(255);
+noStroke();
+rect(0, -50, 130, 30, 15);
 
-  // 眉毛 (使用 push/pop 和 rotate)
-  noFill();
-  stroke(240);
-  strokeWeight(6);
-  let browAngle = currentParams.eyebrowAngle;
-  
-  push();
-  translate(-eyeX, eyeY - 20);
-  rotate(-browAngle);
-  line(-15, 0, 15, 0);
-  pop();
+// --- 7. 鼻子 ---
+fill(240, 160, 160);
+ellipse(0, 10, 18, 18);
 
-  push();
-  translate(eyeX, eyeY - 20);
-  rotate(browAngle);
-  line(-15, 0, 15, 0);
-  pop();
+pop();
+}
 
-  // 嘴巴
-  stroke(180, 100, 100);
-  strokeWeight(3);
-  noFill();
-  
-  let curve = currentParams.mouthCurve;
-  let mouthY = 35;
-  
-  // === 这里的逻辑修改了 ===
-  // 如果 curve 很小（中性表情），使用 line() 画直线
-  // abs() 是取绝对值
-  if (abs(curve) < 0.05) {
-    line(-15, mouthY, 15, mouthY); 
-  } 
-  else if (curve > 0) {
-    // 快乐：开口向上
-    arc(0, mouthY - 5, 30, 20 * curve, 0, PI);
-  } 
-  else {
-    // 悲伤/焦虑：开口向下
-    // abs(curve) 确保高度是正数
-    arc(0, mouthY + 5, 30, 20 * abs(curve), PI, 0);
-  }
-  
-  // 颤抖时的锯齿嘴 (Anxiety 状态)
-  if (currentParams.tremble > 0.5) {
-    // 先画个肤色方块盖住原来的嘴
-    fill(255, 220, 200); 
-    noStroke();
-    rect(0, mouthY, 40, 20); 
-    
-    // 画锯齿线
-    noFill();
-    stroke(180, 100, 100);
-    strokeWeight(3);
-    beginShape();
-    vertex(-10, mouthY);
-    vertex(-5, mouthY + 2);
-    vertex(0, mouthY - 2);
-    vertex(5, mouthY + 2);
-    vertex(10, mouthY);
-    endShape();
-  }
+function drawDynamicFeatures(emotion, intensity) {
+noFill();
+// A. 眉毛
+stroke(240);
+strokeWeight(6);
+if (emotion === "happy") {
+let arch = 20 + intensity * 20; 
+arc(-25, -35, 30, arch, PI, 0); 
+arc(25, -35, 30, arch, PI, 0);
+} 
+else if (emotion === "sad") {
+let slope = 10 + intensity * 15;
+line(-40, -40, -10, -40 - slope);
+line(10, -40 - slope, 40, -40);
+} 
+else if (emotion === "anxiety") {
+line(-40, -50, -10, -30);
+line(10, -30, 40, -50);
+} 
+else {
+line(-40, -35, -10, -35); 
+line(10, -35, 40, -35); 
+}
 
-  // 帽子边缘
-  fill(255);
-  noStroke();
-  rect(0, -50, 130, 30, 15); // 使用带圆角的 rect
+// B. 嘴巴
+stroke(180, 100, 100);
+strokeWeight(3);
 
-  // 鼻子
-  fill(240, 160, 160);
-  ellipse(0, 10, 18, 18);
+if (isMouthOpen) {
+// 张嘴
+fill(50, 0, 0); 
+noStroke();
+if (emotion === "happy") arc(0, 35, 30 + intensity*10, 40, 0, PI); 
+else if (emotion === "sad") ellipse(0, 45, 20, 30 + intensity*10); 
+else if (emotion === "anxiety") { 
+beginShape();
+for(let i=0; i<360; i+=45) {
+let r = 15 + random(5);
+let x = r * cos(radians(i));
+let y = 35 + r * sin(radians(i));
+vertex(x, y);
+}
+endShape(CLOSE);
+}
+else ellipse(0, 35, 20, 20); 
 
-  pop(); // 恢复坐标系
+} else {
+// 闭嘴
+noFill();
+if (emotion === "happy") {
+let curve = 20 + intensity * 20;
+arc(0, 30, 30, curve, 0, PI);
+} 
+else if (emotion === "sad") {
+let curve = 20 + intensity * 20;
+arc(0, 45, 30, curve, PI, 0);
+} 
+else if (emotion === "anxiety") {
+beginShape();
+vertex(-15, 40); vertex(-5, 35); vertex(5, 45); vertex(15, 40);
+endShape();
+} 
+else {
+line(-15, 35, 15, 35);
+}
+}
 }

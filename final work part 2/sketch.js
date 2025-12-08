@@ -14,7 +14,7 @@ function preload() {
 function setup() {
   createCanvas(windowWidth, windowHeight);
   rectMode(CENTER);
-  textAlign(CENTER, CENTER);
+  textAlign(CENTER, CENTER);//// 文字对齐:水平和垂直都居中
   noStroke();
 
   video = createCapture(VIDEO);
@@ -23,6 +23,7 @@ function setup() {
 
   faceMesh.detectStart(video, gotFaces);
 
+  //设置圣诞老人初始位置设在画布中心
   santaX = width / 2;
   santaY = height / 2;
 }
@@ -32,7 +33,7 @@ function gotFaces(results) {
 }
 
 function draw() {
-  drawBackground();//绘制情绪北京
+  drawBackground();//绘制情绪背景
 
   //2. 计算圣诞老人的位置和情绪状态
   let data = updateSantaLogic();
@@ -42,43 +43,48 @@ function draw() {
 }
 
 
+
+//更新圣诞老人的状态
 function updateSantaLogic() {
-  let currentEmotion = "neutral";// 初始默认情绪:中性
-  let intensity = 0; //默认初始情绪强度
+  let currentEmotion = "neutral";
+  let intensity = 0; 
   let cx = width / 2;
   let cy = height / 2;
 
+  // 检查是否检测到人脸
   if (faces.length > 0) {
-    let face = faces[0];
+    let face = faces[0];//// 取第一张脸
     
-    // A. 使用鼻尖位置控制圣诞老人移动
+    // 使用鼻尖位置控制圣诞老人移动
     let nose = face.keypoints[4]; 
+
+    //将vide拍到的范围扩大到整个canvas
     let targetX = map(nose.x, 0, video.width, 0, width);
     let targetY = map(nose.y, 0, video.height, 0, height);
     
-    //// 使用线性插值让圣诞老人平滑移动(不会瞬间跳跃)
+    //由于摄像头抖动厉害，我用lerp去平滑了人脸的移动
     santaX = lerp(santaX, targetX, 0.1);
     santaY = lerp(santaY, targetY, 0.1);
 
-    // 计算圣诞老人与画布中心的距离
+    // 此处计算圣诞老人与画布中心的距离
     let d = dist(santaX, santaY, cx, cy);
 
-    // 定义中心区域阈值为(100像素)
-    let centerThreshold = 100;
+    // 定义中心区域的半径为100 
+    let center = 100;
 
-    //根据位置判断情绪
-    if (d < centerThreshold) {//在中心区域，情绪为"neutral"
-      currentEmotion = "neutral";
-      intensity = 0;
+    //开始根据位置判断情绪
+    if (d < center) {
+      currentEmotion = "neutral";//人脸在中心区域时显示"neutral"表情
+      intensity = 0;//表情变化幅度为0
     } else {
-      // 不在中心区域，根据象限判断情绪
-      if (santaX < cx && santaY < cy) currentEmotion = "angry"; // 左上
-      else if (santaX >= cx && santaY < cy) currentEmotion = "happy"; // 右上
-      else if (santaX < cx && santaY >= cy) currentEmotion = "sad";   // 左下
-      else currentEmotion = "calm";  // 右下
+      // 判断象限
+      if (santaX < cx && santaY < cy) currentEmotion = "angry"; // 左上象限:焦虑/愤怒
+      else if (santaX >= cx && santaY < cy) currentEmotion = "happy"; // 右上象限:开心
+      else if (santaX < cx && santaY >= cy) currentEmotion = "sad";   // 左下象限:伤心
+      else currentEmotion = "calm";  // 右下象限:平静/温柔
       
-      // 强度计算
-      intensity = map(d, centerThreshold, width/2, 0, 1, true);
+      // 情绪变化的幅度计算（距离越远,强度越大）
+      intensity = map(d, center, width/2, 0, 1, true);
     }
   }
 
@@ -92,14 +98,14 @@ function drawBackground() {
   let cx = width / 2;
   let cy = height / 2;
 
-  // 左上 (Anxiety): 紫色
+  // 左上 (Angry): 紫色
   fill(220, 210, 230); rect(cx/2, cy/2, cx, cy);         
   // 右上 (Happy): 黄色
   fill(255, 245, 200); rect(cx + cx/2, cy/2, cx, cy);    
   // 左下 (Sad): 蓝色
   fill(200, 220, 240); rect(cx/2, cy + cy/2, cx, cy);    
   
-  // 【关键修改】右下 (Calm): 温和的浅绿色 (Gentle Green)
+  // 右下 (Calm): 
   fill(215, 235, 215); rect(cx + cx/2, cy + cy/2, cx, cy); 
 
     // 绘制象限标签文字 - 放在每个象限的正中央
@@ -117,24 +123,25 @@ function drawBackground() {
   line(0, cy, width, cy);
 }
 
-// ==================== 绘制圣诞老人 ====================
-
-function drawSanta(emotion, intensity) {
+ //开始绘制圣诞老人
+ function drawSanta(emotion, intensity) {
   push();
   
-  // 焦虑颤抖
+  //生气时颤抖的效果
   let shakeX = 0;
   let shakeY = 0;
-  if (emotion === "angry") {
-    let shakeAmount = intensity * 8; 
+  if (emotion == "angry") {
+    let shakeAmount = intensity * 10; //根据 intensity的强度来计算最大抖动幅度
+    //让 Santa 在这个范围内随机抖动
     shakeX = random(-shakeAmount, shakeAmount);
     shakeY = random(-shakeAmount, shakeAmount);
   }
 
+  // 将坐标系移动到 Santa 的位置，并加上抖动偏移
   translate(santaX + shakeX, santaY + shakeY); 
-  scale(1.2); 
+  scale(1.2); //放大santa到原来的1.2倍
 
-  // --- 1. 帽子 ---
+  // 绘制帽子
   fill(220, 40, 40);
   noStroke();
   beginShape();
@@ -146,12 +153,12 @@ function drawSanta(emotion, intensity) {
   fill(255);
   ellipse(-90, -40, 28, 28);
 
-  // --- 2. 脸 ---
+  // 绘制脸
   fill(255, 220, 200);
   noStroke();
   ellipse(0, 0, 120, 120);
 
-  // --- 3. 胡子 ---
+  //绘制络腮胡
   fill(245, 245, 250);
   noStroke();
   beginShape();
@@ -166,10 +173,7 @@ function drawSanta(emotion, intensity) {
   arc(20, 20, 40, 30, PI, -0.5);     
 
 
-  // ==========================================
-  //      动态五官绘制
-  // ==========================================
-
+  
   // --- A. 眉毛 ---
   noFill();
   stroke(240);
