@@ -168,19 +168,19 @@ function drawBackground() {
   curveVertex(65, 50); curveVertex(60, 0);   
   curveVertex(60, 0);     
   endShape();
+  //鼻侧两个小胡子
   fill(255);
-  arc(-20, 20, 40, 30, PI + 0.5, 0); 
-  arc(20, 20, 40, 30, PI, -0.5);     
+  arc(-20, 20, 40, 30, PI + 0.5, 0); //左边
+  arc(20, 20, 40, 30, PI, -0.5); //右边   
 
 
-  
-  // --- A. 眉毛 ---
+  // 绘制眉毛（根据不同的情绪改变形状）
   noFill();
-  stroke(240);
+  stroke(240);//浅灰色
   strokeWeight(6);
   
-  if (emotion === "happy") {
-    let arch = 35 + intensity * 20; 
+  if (emotion == "happy") {//// 开心的眉毛上扬成弧形,强度越大弧度越大
+    let arch = 35 + intensity * 20; //35为基础弧度
     arc(-25, -35, 30, arch, PI, 0); 
     arc(25, -35, 30, arch, PI, 0);
   
@@ -189,6 +189,7 @@ function drawBackground() {
     let slope = 12 + intensity * 15;
     line(-40, -35 - slope, -5, -25);
     line(5, -25, 40, -35 - slope);
+    
   } else if (emotion === "sad") {
   // 伤心:固定的下垂八字眉(外低内高)
   line(-40, -30, -5, -35); // 左眉(外低内高,向上倾斜)
