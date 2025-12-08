@@ -202,31 +202,26 @@ function drawBackground() {
   }
 
   //绘制眼睛和脸颊
-  
-  // Calm 专属红晕：随强度加深
-  if (emotion === "calm") {
+  // 绘制calm的红晕
+  if (emotion == "calm") {
     noStroke();
-    fill(255, 150, 180, 100); // 离越远，红晕越明显
+    fill(255, 150, 180, 100); 
     ellipse(-35, -5, 25, 15); 
     ellipse(35, -5, 25, 15);
   }
 
-  if (emotion === "happy") {
-    // 开心：倒U眯眯眼
+  if (emotion == "happy") {
+    // 绘制开心的眼睛
     noFill();
     stroke(0);
     strokeWeight(4);
     let curve = 12 + intensity * 10; 
     arc(-25, -15, 20, curve, PI, 0); 
     arc(25, -15, 20, curve, PI, 0);
-    // 高光
-    noStroke();
-    fill(255);
-    ellipse(-30, -15, 4, 4);
-    ellipse(20, -15, 4, 4);
+   
   } 
-  else if (emotion === "sad") {
-    // 伤心：闭眼下垂 + 泪花
+  else if (emotion == "sad") {
+    // 绘制伤心的眼睛
     noFill();
     stroke(0);
     strokeWeight(4);
@@ -235,84 +230,90 @@ function drawBackground() {
     line(18, -18 + droop, 32, -12 + droop);
     noStroke();
     fill(150, 200, 255);
+    //绘制泪花
     ellipse(-32, -12 + droop + 3, 5, 5);
     ellipse(32, -12 + droop + 3, 5, 5);
+
   }
-  else if (emotion === "angry") {
-    // 愤怒/焦虑：瞪眼
+  else if (emotion == "angry") {
+    // 愤怒的眼睛
     noStroke();
-    fill(255);
-    let eyeSize = 18 + intensity * 8;
-    ellipse(-25, -15, eyeSize, eyeSize);
-    ellipse(25, -15, eyeSize, eyeSize);
+    fill(255);//白色的眼白
+    let eyeSize = 18 + intensity * 8;// 眼睛大小随强度增加
+    ellipse(-25, -15, eyeSize, eyeSize);//左眼
+    ellipse(25, -15, eyeSize, eyeSize);//右眼
     fill(0);
+
+    //// 黑色瞳孔(固定大小)
     let pupilSize = 5; 
-    ellipse(-25, -15, pupilSize, pupilSize);
-    ellipse(25, -15, pupilSize, pupilSize);
+    ellipse(-25, -15, pupilSize, pupilSize);// 左瞳孔
+    ellipse(25, -15, pupilSize, pupilSize);//// 右瞳孔
+
+     // 眼皮压下效果(用肤色矩形遮挡眼睛上半部)
     fill(255, 220, 200); 
-    rect(-25, -25, 25, 10);
-    rect(25, -25, 25, 10);
+    rect(-25, -25, 25, 10);//// 左眼眼皮
+    rect(25, -25, 25, 10);// 右眼眼皮
+
   }
   else if (emotion === "calm") {
-    // 【关键修改：Calm 眼睛】
-    // 逻辑：从直逐渐弯曲成 U 型
+    //绘制calm时的眼睛让其从直线渐变成向下弯的U形
     noFill();
     stroke(0);
     strokeWeight(4);
     
-    // arc 的高度参数：intensity 为 0 时是 0 (直线)，为 1 时是 12 (弯曲)
+    // 最开始是直线，后面开始变弯曲
     let curveHeight = intensity * 12; 
     
-    // 画向下弯的弧线 (0 到 PI)
-    arc(-25, -15, 18, curveHeight, 0, PI); 
-    arc(25, -15, 18, curveHeight, 0, PI); 
+    arc(-25, -15, 18, curveHeight, 0, PI); //左眼
+    arc(25, -15, 18, curveHeight, 0, PI); //右眼
   }
   else {
+
     // Neutral：黑豆豆眼
     noStroke();
     fill(0);
-    ellipse(-25, -15, 12, 15); 
-    ellipse(25, -15, 12, 15); 
+    ellipse(-25, -15, 12, 15); //左眼
+    ellipse(25, -15, 12, 15); //右眼
+    //绘制眼睛高光
     fill(255);
-    ellipse(-23, -17, 4, 4);
-    ellipse(27, -17, 4, 4);
+    ellipse(-23, -17, 4, 4);//左眼
+    ellipse(27, -17, 4, 4);//右眼
   }
 
-  // --- C. 嘴巴 ---
+  // 绘制嘴巴（根据情绪改变形状）
   stroke(180, 100, 100);
   strokeWeight(3);
   noFill();
 
-  if (emotion === "happy") {
-    let curve = 20 + intensity * 30;
+  if (emotion === "happy") {//开心的嘴巴，向上弯曲的弧线
+    let curve = 20 + intensity * 30;//// 弯曲程度随强度增加
     arc(0, 30, 30, curve, 0, PI);
-  } else if (emotion === "sad") {
+  } else if (emotion === "sad") {//// 伤心:向下弯的撇嘴
     let curve = 20 + intensity * 30;
     arc(0, 45, 30, curve, PI, 0);
-  } else if (emotion === "angry") {
+  } else if (emotion === "angry") {//angry：不规则的抖动嘴巴
     beginShape();
-    let shake = intensity * 5;
+    let shake = intensity * 5;//嘴巴抖动幅度
     vertex(-15, 40); 
     vertex(-5, 35 + random(-shake, shake)); 
     vertex(5, 45 + random(-shake, shake)); 
     vertex(15, 40);
     endShape();
   } else if (emotion === "calm") {
-    // 【关键修改：Calm 嘴巴】
-    // 逻辑：从几乎直线逐渐变成温柔的微笑
+    // 平静:从直线渐变成温柔的微笑
     let curve = intensity * 15; // 弯曲程度随距离增加
     arc(0, 35, 20, curve, 0, PI);
   } else {
-    // Neutral：直线
+    // Neutral表情的嘴巴：直线
     line(-15, 35, 15, 35);
   }
 
-  // --- 7. 帽子白边 ---
+  // 绘制帽子的白边
   fill(255);
   noStroke();
   rect(0, -50, 130, 30, 15); 
 
-  // --- 8. 鼻子 ---
+  // 绘制鼻子
   fill(240, 160, 160);
   ellipse(0, 10, 18, 18);
 
