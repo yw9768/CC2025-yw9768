@@ -1,6 +1,10 @@
 let santaX = 0;
 let santaY = 0;
 
+// 新增：用全局变量存储当前情绪和强度
+let currentEmotion = "neutral";
+let currentIntensity = 0;
+
 // ML5 变量
 let video;
 let faceMesh;
@@ -14,7 +18,7 @@ function preload() {
 function setup() {
   createCanvas(windowWidth, windowHeight);
   rectMode(CENTER);
-  textAlign(CENTER, CENTER);//// 文字对齐:水平和垂直都居中
+  textAlign(CENTER, CENTER);
   noStroke();
 
   video = createCapture(VIDEO);
@@ -36,18 +40,20 @@ function draw() {
   drawBackground();//绘制情绪背景
 
   //2. 计算圣诞老人的位置和情绪状态
-  let data = updateSantaLogic();
+  updateSantaLogic();
 
   // 3. 根据情绪和强度绘制圣诞老人
-  drawSanta(data.emotion, data.intensity);
+  drawSanta(currentEmotion, currentIntensity);
 }
 
 
 
 //更新圣诞老人的状态
 function updateSantaLogic() {
-  let currentEmotion = "neutral";
-  let intensity = 0; 
+  // 重置为默认值
+  currentEmotion = "neutral";
+  currentIntensity = 0; 
+  
   let cx = width / 2;
   let cy = height / 2;
 
@@ -75,7 +81,7 @@ function updateSantaLogic() {
     //开始根据位置判断情绪
     if (d < center) {
       currentEmotion = "neutral";//人脸在中心区域时显示"neutral"表情
-      intensity = 0;//表情变化幅度为0
+      currentIntensity = 0;//表情变化幅度为0
     } else {
       // 判断象限
       if (santaX < cx && santaY < cy) currentEmotion = "angry"; // 左上象限:焦虑/愤怒
@@ -84,11 +90,9 @@ function updateSantaLogic() {
       else currentEmotion = "calm";  // 右下象限:平静/温柔
       
       // 情绪变化的幅度计算（距离越远,强度越大）
-      intensity = map(d, center, width/2, 0, 1, true);
+      currentIntensity = map(d, center, width/2, 0, 1, true);
     }
   }
-
-  return { emotion: currentEmotion, intensity: intensity };
 }
 
 // ==================== 绘制背景 ====================
