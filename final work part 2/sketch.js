@@ -1,11 +1,11 @@
 let santaX = 0;
 let santaY = 0;
 
-// 新增：用全局变量存储当前情绪和强度
+// Global variables to store Santa's current emotion state and how strong that emotion is
 let currentEmotion = "neutral";
 let currentIntensity = 0;
 
-// ML5 变量
+// ML5 variables for face tracking
 let video;
 let faceMesh;
 let faces = [];
@@ -27,7 +27,7 @@ function setup() {
 
   faceMesh.detectStart(video, gotFaces);
 
-  //设置圣诞老人初始位置设在画布中心
+  // Initialize Santa's position to the center of the canvas
   santaX = width / 2;
   santaY = height / 2;
 }
@@ -37,287 +37,281 @@ function gotFaces(results) {
 }
 
 function draw() {
-  drawBackground();//绘制情绪背景
-
-  //2. 计算圣诞老人的位置和情绪状态
-  updateSantaLogic();
-
-  // 3. 根据情绪和强度绘制圣诞老人
-  drawSanta(currentEmotion, currentIntensity);
+  drawBackground(); // Draw the colorful background
+  updateSantaLogic();//Calculate Santa's position and emotion based on face location
+  drawSanta(currentEmotion, currentIntensity);//Draw Santa with the current emotion and intensity
 }
 
-
-
-//更新圣诞老人的状态
+// Update Santa's emotion and position based on face tracking
 function updateSantaLogic() {
-  // 重置为默认值
+  // Reset to default values
   currentEmotion = "neutral";
   currentIntensity = 0; 
   
   let cx = width / 2;
   let cy = height / 2;
 
-  // 检查是否检测到人脸
+  // Check if we detected any faces
   if (faces.length > 0) {
-    let face = faces[0];//// 取第一张脸
+    let face = faces[0];// Get the first detected face
     
-    // 使用鼻尖位置控制圣诞老人移动
+    // Use the nose tip position to control Santa's movement
     let nose = face.keypoints[4]; 
 
-    //将vide拍到的范围扩大到整个canvas
+    // Map the video coordinates to canvas coordinates (scale up to fit the whole screen)
     let targetX = map(nose.x, 0, video.width, 0, width);
     let targetY = map(nose.y, 0, video.height, 0, height);
     
-    //由于摄像头抖动厉害，我用lerp去平滑了人脸的移动
+    //Here i use lerp to smooth out the movement to reduce shaking 
     santaX = lerp(santaX, targetX, 0.1);
     santaY = lerp(santaY, targetY, 0.1);
 
-    // 此处计算圣诞老人与画布中心的距离
+    // Calculate how far Santa is from the center
     let d = dist(santaX, santaY, cx, cy);
 
-    // 定义中心区域的半径为100 
+    //Define the neutral zone radius=100
     let center = 100;
 
-    //开始根据位置判断情绪
+    // Decide emotion based on position
     if (d < center) {
-      currentEmotion = "neutral";//人脸在中心区域时显示"neutral"表情
-      currentIntensity = 0;//表情变化幅度为0
+      currentEmotion = "neutral";// Face is in the center area - show neutral expression
+      currentIntensity = 0;// And here no change in expression
     } else {
-      // 判断象限
-      if (santaX < cx && santaY < cy) currentEmotion = "angry"; // 左上象限:焦虑/愤怒
-      else if (santaX >= cx && santaY < cy) currentEmotion = "happy"; // 右上象限:开心
-      else if (santaX < cx && santaY >= cy) currentEmotion = "sad";   // 左下象限:伤心
-      else currentEmotion = "calm";  // 右下象限:平静/温柔
+      // Determine which quadrant the face is in
+      if (santaX < cx && santaY < cy) currentEmotion = "angry"; // Top left quadrant: angry
+      else if (santaX >= cx && santaY < cy) currentEmotion = "happy"; // Top right quadrant: happy
+      else if (santaX < cx && santaY >= cy) currentEmotion = "sad";   // Bottom left quadrant: sad
+      else currentEmotion = "calm";  // Bottom right quadrant: calm
       
-      // 情绪变化的幅度计算（距离越远,强度越大）
+      // Calculate emotion intensity (farther from center = stronger emotion)
       currentIntensity = map(d, center, width/2, 0, 1, true);
     }
   }
 }
 
-// ==================== 绘制背景 ====================
-
+// Draw the colorful background with 4 different colors
 function drawBackground() {
   noStroke();
   let cx = width / 2;
   let cy = height / 2;
 
-  // 左上 (Angry): 紫色
-  fill(220, 210, 230); rect(cx/2, cy/2, cx, cy);         
-  // 右上 (Happy): 黄色
-  fill(255, 245, 200); rect(cx + cx/2, cy/2, cx, cy);    
-  // 左下 (Sad): 蓝色
-  fill(200, 220, 240); rect(cx/2, cy + cy/2, cx, cy);    
-  
-  // 右下 (Calm): 
-  fill(215, 235, 215); rect(cx + cx/2, cy + cy/2, cx, cy); 
+  fill(220, 210, 230); rect(cx/2, cy/2, cx, cy); // Top left corner (Angry zone)        
+  fill(255, 245, 200); rect(cx + cx/2, cy/2, cx, cy); // Top right corner (Happy zone)   
+  fill(200, 220, 240); rect(cx/2, cy + cy/2, cx, cy); // Bottom left corner (Sad zone)   
+  fill(215, 235, 215); rect(cx + cx/2, cy + cy/2, cx, cy); // Bottom right corner (Calm zone)
 
-    // 绘制象限标签文字 - 放在每个象限的正中央
-  fill(0, 50); // 半透明黑色
-   textSize(48); // 更大的字体
-   text("ANGRY", cx / 2, cy / 2);           // 左上象限中心
-   text("HAPPY", cx + cx / 2, cy / 2);        // 右上象限中心
-   text("SAD", cx / 2, cy + cy / 2);          // 左下象限中心
-   text("CALM", cx + cx / 2, cy + cy / 2);    // 右下象限中心
+  // Draw emotion labels in each quadrant
+  fill(0, 50); 
+   textSize(48); 
+   text("ANGRY", cx / 2, cy / 2); // Top left center
+   text("HAPPY", cx + cx / 2, cy / 2); // Top right center
+   text("SAD", cx / 2, cy + cy / 2);  // Bottom left center
+   text("CALM", cx + cx / 2, cy + cy / 2); // Bottom right center
 
-  // 分割线
+  // Draw the white cross lines in the middle
   stroke(255, 150);
   strokeWeight(4);
-  line(cx, 0, cx, height);
-  line(0, cy, width, cy);
+  line(cx, 0, cx, height);// Vertical line
+  line(0, cy, width, cy);// Horizontal line
 }
 
- //开始绘制圣诞老人
+ // Start drawing Santa with different emotions
  function drawSanta(emotion, intensity) {
   push();
   
-  //生气时颤抖的效果
+  // Add shaking effect when angry
   let shakeX = 0;
   let shakeY = 0;
   if (emotion == "angry") {
-    let shakeAmount = intensity * 10; //根据 intensity的强度来计算最大抖动幅度
-    //让 Santa 在这个范围内随机抖动
+    let shakeAmount = intensity * 10; // Calculate shake strength based on intensity（more intense = more shaking）
+    // Randomly shake within this range
     shakeX = random(-shakeAmount, shakeAmount);
     shakeY = random(-shakeAmount, shakeAmount);
   }
 
-  // 将坐标系移动到 Santa 的位置，并加上抖动偏移
+   // Move the entire coordinate system to Santa's position
   translate(santaX + shakeX, santaY + shakeY); 
-  scale(1.2); //放大santa到原来的1.2倍
+  scale(1.2); // Make Santa a bit bigger
 
-  // 绘制帽子
+  //draw the hat
   fill(220, 40, 40);
   noStroke();
+  
   beginShape();
-  curveVertex(60, -40); curveVertex(60, -40);  
-  curveVertex(40, -90); curveVertex(0, -110);  
-  curveVertex(-50, -90); curveVertex(-90, -40); 
+  curveVertex(60, -40); 
+  curveVertex(60, -40);  // the starting point at the lower right corner
+  curveVertex(40, -90);  // turn up on the right
+  curveVertex(0, -110);  // The highest point of the hat
+  curveVertex(-50, -90); // Bend upwards on the left
+  curveVertex(-90, -40); // last point at the lower left corner
   curveVertex(-90, -40); 
   endShape();
+
+  // The ball on the hat
   fill(255);
   ellipse(-90, -40, 28, 28);
 
-  // 绘制脸
+  // draw the face
   fill(255, 220, 200);
   noStroke();
   ellipse(0, 0, 120, 120);
 
-  //绘制络腮胡
+  //draw the full beard beneath the face
   fill(245, 245, 250);
   noStroke();
   beginShape();
-  curveVertex(-60, 0); curveVertex(-60, 0);  
-  curveVertex(-65, 50); curveVertex(-40, 90); 
-  curveVertex(0, 105); curveVertex(40, 90);  
-  curveVertex(65, 50); curveVertex(60, 0);   
+  curveVertex(-60, 0);
+  curveVertex(-60, 0);  
+  curveVertex(-65, 50); // Left side curves outward
+  curveVertex(-40, 90); // Left bottom
+  curveVertex(0, 105); // Bottom center (lowest point)
+  curveVertex(40, 90); // Right bottom
+  curveVertex(65, 50); // Right side curves outward
+  curveVertex(60, 0);   
   curveVertex(60, 0);     
   endShape();
-  //鼻侧两个小胡子
+
+  //The small whiskers on both sides of the nose
   fill(255);
-  arc(-20, 20, 40, 30, PI + 0.5, 0); //左边
-  arc(20, 20, 40, 30, PI, -0.5); //右边   
+  arc(-20, 20, 40, 30, PI + 0.5, 0); //left one
+  arc(20, 20, 40, 30, PI, -0.5); //right one  
 
 
-  // 绘制眉毛（根据不同的情绪改变形状）
+  // Draw eyebrows (shape changes based on emotion)
   noFill();
-  stroke(240);//浅灰色
+  stroke(240);// Light gray color
   strokeWeight(6);
   
-  if (emotion == "happy") {//// 开心的眉毛上扬成弧形,强度越大弧度越大
-    let arch = 35 + intensity * 15; //35为基础弧度
+  if (emotion == "happy") { // Happy eyebrows: curved upward, stronger curve when more intense
+    let arch = 35 + intensity * 15; // Base curve is 35
     arc(-25, -35, 30, arch, PI, 0); 
     arc(25, -35, 30, arch, PI, 0);
   
   } 
-  else if (emotion === "angry") {
+  else if (emotion == "angry") { // Angry eyebrows: angled downward toward center (V shape)
     let slope = 12 + intensity * 15;
-    line(-40, -35 - slope, -5, -25);//-35为眉毛基础高度
+    line(-40, -35 - slope, -5, -25);// -35 is the base eyebrow height
     line(5, -25, 40, -35 - slope);
 
-  } else if (emotion === "sad") {
-  // 伤心:固定的下垂八字眉(外低内高)
-  line(-40, -30, -5, -35); // 左眉(外低内高,向上倾斜)
-  line(5, -35, 40, -30);   // 右眉(内高外低,向下倾斜)
+  } else if (emotion == "sad") {
+  // Sad eyebrows: drooping downward (upside-down V)
+  line(-40, -30, -5, -35); // Left brow (lower outside, higher inside)
+  line(5, -35, 40, -30);   // Right brow (higher inside, lower outside)
   } 
   else {
-    // Neutral 直线
+    // Neutral eyebrows: straight lines
     line(-40, -35, -10, -35); 
     line(10, -35, 40, -35); 
   }
 
-  //绘制眼睛和脸颊
-  // 绘制calm的红晕
-  if (emotion == "calm") {
+  // Draw eyes and cheeks
+  if (emotion == "calm") { // Add pink blush when calm
     noStroke();
-    fill(255, 150, 180, 100); 
-    ellipse(-35, -5, 25, 15); 
-    ellipse(35, -5, 25, 15);
+    fill(255, 150, 180, 100); //pink color
+    ellipse(-35, -5, 25, 15); // Left blush
+    ellipse(35, -5, 25, 15);  // Right blush
   }
 
-  if (emotion == "happy") {
-    // 绘制开心的眼睛
+  if (emotion == "happy") {// Happy eyes: curved upward smiling eyes
     noFill();
     stroke(0);
     strokeWeight(4);
-    let curve = 12 + intensity * 10; 
-    arc(-25, -15, 20, curve, PI, 0); 
-    arc(25, -15, 20, curve, PI, 0);
+    let curve = 12 + intensity * 10; // Curve gets stronger with intensity
+    arc(-25, -15, 20, curve, PI, 0); // Left eye
+    arc(25, -15, 20, curve, PI, 0);  // Right eye
    
   } 
-  else if (emotion == "sad") {
-    // 绘制伤心的眼睛
+  else if (emotion == "sad") { // Sad eyes: drooping downward
     noFill();
     stroke(0);
     strokeWeight(4);
     let droop = intensity * 6;
-    line(-32, -12 + droop, -18, -18 + droop);
-    line(18, -18 + droop, 32, -12 + droop);
+    line(-32, -12 + droop, -18, -18 + droop); // Left eye drooping
+    line(18, -18 + droop, 32, -12 + droop); // Right eye drooping
     noStroke();
-    fill(150, 200, 255);
-    //绘制泪花
-    ellipse(-32, -12 + droop + 3, 5, 5);
-    ellipse(32, -12 + droop + 3, 5, 5);
+    fill(150, 200, 255); // Light blue color
+    // Draw little tears
+    ellipse(-32, -12 + droop + 3, 5, 5); // Left tear
+    ellipse(32, -12 + droop + 3, 5, 5); // Right tear
 
   }
-  else if (emotion == "angry") {
-    // 愤怒的眼睛
+  else if (emotion == "angry") { // Angry eyes: wide open with small pupils
     noStroke();
-    fill(255);//白色的眼白
-    let eyeSize = 18 + intensity * 8;// 眼睛大小随强度增加
-    ellipse(-25, -15, eyeSize, eyeSize);//左眼
-    ellipse(25, -15, eyeSize, eyeSize);//右眼
+    fill(255);// White part of eyes
+    let eyeSize = 18 + intensity * 8;// Eye size gets bigger with intensity
+    ellipse(-25, -15, eyeSize, eyeSize);// Left eye
+    ellipse(25, -15, eyeSize, eyeSize);// Right eye
     fill(0);
 
-    //// 黑色瞳孔(固定大小)
+    // Black pupils (fixed size)
     let pupilSize = 5; 
-    ellipse(-25, -15, pupilSize, pupilSize);// 左瞳孔
-    ellipse(25, -15, pupilSize, pupilSize);//// 右瞳孔
+    ellipse(-25, -15, pupilSize, pupilSize);// Left pupil
+    ellipse(25, -15, pupilSize, pupilSize);// Right pupil
 
-     // 眼皮压下效果(用肤色矩形遮挡眼睛上半部)
-    fill(255, 220, 200); 
-    rect(-25, -25, 25, 10);//// 左眼眼皮
-    rect(25, -25, 25, 10);// 右眼眼皮
+    // Add eyelid effect (skin-colored rectangle covering top of eyes)
+    fill(255, 220, 200); // Skin color
+    rect(-25, -25, 25, 10);// Left eyelid
+    rect(25, -25, 25, 10);// Right eyelid
 
   }
-  else if (emotion === "calm") {
-    //绘制calm时的眼睛让其从直线渐变成向下弯的U形
+  else if (emotion == "calm") { // Calm eyes: gradually change from straight line to gentle downward curve
     noFill();
     stroke(0);
     strokeWeight(4);
-    
-    // 最开始是直线，后面开始变弯曲
-    let curveHeight = intensity * 12; 
-    
-    arc(-25, -15, 18, curveHeight, 0, PI); //左眼
-    arc(25, -15, 18, curveHeight, 0, PI); //右眼
+    let curveHeight = intensity * 12; // Starts as straight line, then curves downward
+    arc(-25, -15, 18, curveHeight, 0, PI); // Left eye
+    arc(25, -15, 18, curveHeight, 0, PI); // Right eye
   }
-  else {
 
-    // Neutral：黑豆豆眼
+  else { // Neutral: simple black dot eyes
     noStroke();
     fill(0);
-    ellipse(-25, -15, 12, 15); //左眼
-    ellipse(25, -15, 12, 15); //右眼
-    //绘制眼睛高光
+    ellipse(-25, -15, 12, 15);// Left eye
+    ellipse(25, -15, 12, 15);// Right eye
+    // Tiny white dots to make eyes shiny
     fill(255);
-    ellipse(-23, -17, 4, 4);//左眼
-    ellipse(27, -17, 4, 4);//右眼
+    ellipse(-23, -17, 4, 4);// Left eye highlight
+    ellipse(27, -17, 4, 4);// Right eye highlight
   }
 
-  // 绘制嘴巴（根据情绪改变形状）
+
+  // Draw mouth (shape changes based on emotion)
   stroke(180, 100, 100);
   strokeWeight(3);
   noFill();
 
-  if (emotion === "happy") {//开心的嘴巴，向上弯曲的弧线
-    let curve = 20 + intensity * 30;//// 弯曲程度随强度增加
+  if (emotion == "happy") {// Happy mouth: upward curved smile
+    let curve = 20 + intensity * 30;// Curve gets stronger with intensity
     arc(0, 30, 30, curve, 0, PI);
-  } else if (emotion === "sad") {//// 伤心:向下弯的撇嘴
+
+  } else if (emotion == "sad") {// Sad mouth: downward curved frown
     let curve = 20 + intensity * 30;
     arc(0, 45, 30, curve, PI, 0);
-  } else if (emotion === "angry") {//angry：不规则的抖动嘴巴
+
+  } else if (emotion == "angry") {// Angry mouth: jagged shaking line
     beginShape();
-    let shake = intensity * 5;//嘴巴抖动幅度
-    vertex(-15, 40); 
-    vertex(-5, 35 + random(-shake, shake)); 
-    vertex(5, 45 + random(-shake, shake)); 
-    vertex(15, 40);
+    let shake = intensity * 5;// Shake amount
+    vertex(-15, 40); // Left corner of mouth
+    // Middle vertices shake randomly to create jagged appearance
+    vertex(-5, 35 + random(-shake, shake)); // Left-middle 
+    vertex(5, 45 + random(-shake, shake)); // Right-middle 
+    vertex(15, 40);// Right corner of mouth
     endShape();
-  } else if (emotion === "calm") {
-    // 平静:从直线渐变成温柔的微笑
-    let curve = intensity * 15; // 弯曲程度随距离增加
+
+  } else if (emotion == "calm") {// Calm mouth: gradually changes from straight line to gentle smile
+    let curve = intensity * 15; // Curve strength increases with distance
     arc(0, 35, 20, curve, 0, PI);
-  } else {
-    // Neutral表情的嘴巴：直线
+
+  } else {// Neutral mouth: simple straight line
     line(-15, 35, 15, 35);
   }
 
-  // 绘制帽子的白边
+  // White fuzzy part at bottom of hat
   fill(255);
   noStroke();
   rect(0, -50, 130, 30, 15); 
 
-  // 绘制鼻子
+  // draw nose
   fill(240, 160, 160);
   ellipse(0, 10, 18, 18);
 
