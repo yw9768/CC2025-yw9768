@@ -1,4 +1,4 @@
-#### Concepts of mu final work
+#### Concepts of my final work
 
 I chose the mirror concept and created an emotional panel where people use the tip of their nose to move Santa’s face into different emotional quadrants and experience different emotional shifts.
 
