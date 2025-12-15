@@ -1,61 +1,13 @@
-# template
+#### Concepts of mu final work
 
----
+I chose the mirror concept and created an emotional panel where people use the tip of their nose to move Santa’s face into different emotional quadrants and experience different emotional shifts.
 
-This is a README file that can be used to describe and document your assignment.
+The main idea behind my project is social masking. In real life, our expressions are often shaped not by how we truly feel, but by the environment we are in. For example, at a party, we are expected to look happy even if we feel calm inside. In a high-pressure setting, the environment can push us into anxiety whether we like it or not.
 
-Markdown Cheatsheet (from [https://www.markdownguide.org/cheat-sheet/](https://www.markdownguide.org/cheat-sheet/)):
+This feeling of being controlled by external expectations led me to design this system where emotion is determined by position, not by the user’s actual facial expression. In my work, the mirror does not show the user’s real expression, it shows the “mask” that society would impose on them based on where they stand. I wanted to express the sense of powerlessness and absurdity when our faces are shaped by our surroundings instead of ourselves.
 
----
+I did consider using emotion recognition to reflect real emotions, but that would turn the interaction into simple imitation, which goes against my concept. Still, I kept the mouth-opening interaction as a small form of free will. Even though the environment decides the main expression, the user can open their mouth to release emotional particles as a way to express themselves.
 
-# Heading1
-## Heading2
-### Heading3
-#### Heading4
-##### Heading5
-###### Heading6
+Through this design, I try to show the tension between being restricted by the environment and still wanting to express one’s true self.
 
-**bold text**
-
-*italicized text*
-
-~~strikethrough text~~
-
-Ordered List:
-1. First item
-2. Second item
-3. Third item
-
-Unordered List:
-- First item
-- Second item
-- Third item
-
-`short code block`
-
-```
-extended code block
-fun() {
-  return 0
-}
-```
-
-Link:  
-[linked text](https://www.example.com)
-
-
-Image with url:  
-![image description](https://dm-gy-6063-2024f-b.github.io/assets/homework/02/clark-espaco-modulado-00.jpg)
-
-
-Image on repo:  
-![image description](./file-name.jpg)
-
-
-To start a new line, add two spaces at the end of a line, like this:  
-this is a new line.
-
-
-To start a new paragraph, leave an empty line between two lines of text.
-
-This is a new paragraph.
+When the user is tired or expressionless in real life, but the screen shows a big fake smile, I want them to experience a playful yet unsettling contrast, a feeling of being controlled by a fake reaction that doesn’t belong to them.
