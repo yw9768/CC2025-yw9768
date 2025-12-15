@@ -6,7 +6,7 @@ function setup() {
   createCanvas(windowWidth, windowHeight);
   rectMode(CENTER); 
   
-  santaX = width / 2;
+  santaX = width / 2;// Initialize Santa's position to the center of the canvas
   santaY = height / 2;
 }
 
@@ -18,7 +18,7 @@ function draw() {
 
 
 function handleInteraction() {
-   if (mouseIsPressed) {
+   if (mouseIsPressed) {// When click and drag, santa follows your mouse
     santaX = mouseX;
     santaY = mouseY;
    }
@@ -42,7 +42,7 @@ function drawBackground() {
   line(0, cy, width, cy);
 }
 
- 
+ //start drawing santa
 function drawSanta() {
  push();
  translate(santaX, santaY); 
