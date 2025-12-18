@@ -1,3 +1,14 @@
+//Based on part 1, I added facial tracking in ML5.js. 
+//The user's nose can replace the mouse to control Santa Claus' face to move.
+//In addition, I have set the emotions in four quadrants, 
+//namely angry, sad, happy, and calm. 
+//Santa Claus' facial expressions depend on the emotion quadrant he is in.
+//I also developed an emotional intensity system in this part,
+//the intensity of expressions increases as the distance from the center increases，
+// (the farther from the center = the stronger the emotional expression)
+//I incorporated this emotion intensity system into the drawing of facial expressions,
+//causing some facial features (such as eyebrows and mouth) to change with the variation of distance
+
 let santaX = 0;
 let santaY = 0;
 

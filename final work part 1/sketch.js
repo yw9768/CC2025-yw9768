@@ -1,3 +1,6 @@
+//In this part, I drew Santa Claus's face and 
+//made it move along with the mouse. 
+//In addition, I made a simple drawing of the four quadrants representing emotions.
 
 let santaX = 0;
 let santaY = 0;

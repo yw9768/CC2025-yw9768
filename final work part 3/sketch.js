@@ -1,3 +1,7 @@
+//In this section, I added mouth detection.
+//When it detects that the user's mouth is open,
+//Santa Claus will also open his mouth and eventually spit out
+//emotion-specific particle effects or shed tears.
 
 let santaX = 0;
 let santaY = 0;
