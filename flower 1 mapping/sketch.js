@@ -1,146 +1,139 @@
-// ============================================================
-//  液态光流 — p5.mapper 投影版
-//  两个 400×400 quad，左边 ocean 蓝，右边 aurora 紫绿
-// ============================================================
-
 // ---- CONFIG ------------------------------------------------
-const SPEED          = 1.0;
+const SPEED = 1.0;
 const PARTICLE_COUNT = 700;
-// ------------------------------------------------------------
+const COLOR_MODE = 'ocean';
+const COLS = 40, ROWS = 40;
 
 const PALETTES = {
-  ocean:  [[80, 200, 240], [60, 140, 220], [130, 230, 255], [40, 160, 210], [100, 180, 255]],
-  aurora: [[160, 100, 240],[200, 130, 255],[100, 220, 200],[180, 150, 255],[80, 200, 180]],
+  ocean:  [[80,200,240],[60,140,220],[130,230,255],[40,160,210],[100,180,255]],
+  aurora: [[160,100,240],[200,130,255],[100,220,200],[180,150,255],[80,200,180]],
+  rose:   [[255,130,170],[240,100,150],[255,180,200],[220,80,130],[255,210,220]],
+  ink:    [[180,180,200],[140,140,160],[200,190,220],[160,160,190],[120,120,150]],
 };
 
-const W = 400, H = 400;
-const COLS = 40, ROWS = 40;
-const CELL = W / COLS;
+let flows = [
+  { x: 820, y: 310, size: 90,  angleOffset: 0.0 },
+  { x: 940, y: 340, size: 120, angleOffset: 1.0 },
+  { x: 820, y: 420, size: 110, angleOffset: 2.0 },
+  { x: 990, y: 450, size: 120, angleOffset: 3.0 },
+  { x: 850, y: 500, size: 120, angleOffset: 4.2 },
+  { x: 960, y: 540, size: 100, angleOffset: 5.5 },
+];
 
-// ---- mapper 相关 -------------------------------------------
-let pMapper;
-let quadLeft, quadRight;
+let pgs = [];
+let particleGroups = [];
+let flowFields = [];
+let times = [0.0, 0.3, 0.6, 0.9, 1.2, 1.5];
 
-// ---- 两套独立的流场状态 ------------------------------------
-// 左边 quad (ocean)
-let trailLeft;        // 拖尾 graphics，setup 里创建，跨帧保留
-let particlesLeft = [];
-let flowFieldLeft  = [];
-let tLeft = 0;
+// 时间设置
+let brightMs  = 2750; // 亮的持续时间
+let fadeMs    = 1000;   // 过渡时间
+let darkMs    = 270; // 暗的持续时间f
+// 总周期 = 亮 + 淡出过渡 + 暗 + 淡入过渡
+let totalMs   = brightMs + fadeMs + darkMs + fadeMs;
 
-// 右边 quad (aurora)
-let trailRight;
-let particlesRight = [];
-let flowFieldRight  = [];
-let tRight = 0.5;     // 时间偏移，让两边不同步
+let globalAlpha = 1.0;
 
-// ============================================================
-//  setup
-// ============================================================
 function setup() {
-  createCanvas(windowWidth, windowHeight, WEBGL);
+  createCanvas(windowWidth, windowHeight);
 
-  pMapper = createProjectionMapper(this);
-  pMapper.load("map.json");
+  for (let i = 0; i < 6; i++) {
+    let W = flows[i].size;
+    let H = flows[i].size;
 
-  quadLeft  = pMapper.createQuadMap(400, 400);
-  quadRight = pMapper.createQuadMap(400, 400);
+    let g = createGraphics(W, H);
+    g.colorMode(RGB);
+    g.noStroke();
+    g.background(0);
+    pgs.push(g);
 
-  // 拖尾层：在 p5.mapper 外部单独创建，跨帧持续存在
-  // 这是关键：不能在 pg 里面再 createGraphics，
-  // 所以把拖尾层提到全局，作为独立 graphics
-  trailLeft  = createGraphics(W, H);
-  trailLeft.colorMode(RGB);
-  trailLeft.noStroke();
-  trailLeft.background(0);
+    let pts = [];
+    let pal = PALETTES[COLOR_MODE];
+    for (let j = 0; j < PARTICLE_COUNT; j++) {
+      pts.push(makeParticle(pal, W, H));
+    }
+    particleGroups.push(pts);
 
-  trailRight = createGraphics(W, H);
-  trailRight.colorMode(RGB);
-  trailRight.noStroke();
-  trailRight.background(0);
-
-  // 初始化粒子
-  for (let i = 0; i < PARTICLE_COUNT; i++) {
-    particlesLeft.push(makeParticle('ocean'));
-    particlesRight.push(makeParticle('aurora'));
+    flowFields.push(new Array(COLS * ROWS));
   }
 }
 
-// ============================================================
-//  draw
-// ============================================================
 function draw() {
-  background(0);
+  background(255);
 
-  // 时间推进（两边独立）
-  tLeft  += 0.003 * SPEED;
-  tRight += 0.003 * SPEED;
+  // 计算当前在周期里的位置（毫秒）
+  let pos = millis() % totalMs;
 
-  // 更新两边流场
-  updateFlowField(flowFieldLeft,  tLeft);
-  updateFlowField(flowFieldRight, tRight);
+  if (pos < brightMs) {
+    // 亮的阶段
+    globalAlpha = 1.0;
 
-  // 更新两边粒子到各自的拖尾层
-  updateParticles(particlesLeft,  flowFieldLeft,  trailLeft,  tLeft,  'ocean');
-  updateParticles(particlesRight, flowFieldRight, trailRight, tRight, 'aurora');
+  } else if (pos < brightMs + fadeMs) {
+    // 淡出过渡
+    let t = (pos - brightMs) / fadeMs;
+    globalAlpha = 1.0 - t;
 
-  // 渲染到 quad
-  quadLeft.displaySketch(sketchLeft);
-  quadRight.displaySketch(sketchRight);
+  } else if (pos < brightMs + fadeMs + darkMs) {
+    // 暗的阶段
+    globalAlpha = 0.0;
+
+  } else {
+    // 淡入过渡
+    let t = (pos - brightMs - fadeMs - darkMs) / fadeMs;
+    globalAlpha = t;
+  }
+
+  for (let i = 0; i < 6; i++) {
+    times[i] += 0.003 * SPEED;
+    let W = flows[i].size;
+    let H = flows[i].size;
+    updateAll(particleGroups[i], flowFields[i], pgs[i], times[i], flows[i].angleOffset, W, H);
+
+    tint(255, globalAlpha * 255);
+
+    if (i === 4) {
+      push();
+      translate(flows[i].x, flows[i].y);
+      scale(1, 0.5);
+      image(pgs[i], -W/2, -H/2);
+      pop();
+    } else if (i === 5) {
+      push();
+      translate(flows[i].x, flows[i].y);
+      scale(1, 0.5);
+      image(pgs[i], -W/2, -H/2);
+      pop();
+    } else {
+      image(pgs[i], flows[i].x - W/2, flows[i].y - H/2);
+    }
+  }
+
+  noTint();
 }
 
-// ============================================================
-//  sketchLeft / sketchRight — 传给 displaySketch 的函数
-//  pg 是 mapper 给的临时画布，只需把拖尾层贴进去就行
-// ============================================================
-function sketchLeft(pg) {
-  pg.clear();
-  pg.push();
-  pg.background(0);
-  pg.image(trailLeft, 0, 0);   // 把持久拖尾层贴进 mapper 的 pg
-  pg.pop();
-}
+function updateAll(particles, flowField, pg, t, angleOffset, W, H) {
+  let pal = PALETTES[COLOR_MODE];
+  let CELL = W / COLS;
 
-function sketchRight(pg) {
-  pg.clear();
-  pg.push();
-  pg.background(0);
-  pg.image(trailRight, 0, 0);
-  pg.pop();
-}
-
-// ============================================================
-//  updateFlowField — 每帧重算流场角度
-// ============================================================
-function updateFlowField(field, t) {
   for (let col = 0; col < COLS; col++) {
     for (let row = 0; row < ROWS; row++) {
       let nx = col * 0.08 + t * 0.3;
       let ny = row * 0.08 + t * 0.2;
       let angle = noise(nx, ny, t * 0.15) * TWO_PI * 2.5;
       let curl  = noise(nx + 100, ny + 100, t * 0.1) * TWO_PI;
-      field[col + row * COLS] = angle * 0.6 + curl * 0.4;
+      flowField[col + row * COLS] = angle * 0.6 + curl * 0.4 + angleOffset;
     }
   }
-}
 
-// ============================================================
-//  updateParticles — 移动粒子，画到拖尾层
-// ============================================================
-function updateParticles(pts, field, trail, t, colorMode) {
-  let pal = PALETTES[colorMode];
+  pg.fill(0, 0, 0, 18);
+  pg.rect(0, 0, W, H);
 
-  // 拖尾：每帧用低透明度黑色覆盖，形成余光
-  trail.fill(0, 0, 0, 18);
-  trail.rect(0, 0, W, H);
-
-  for (let pt of pts) {
+  for (let pt of particles) {
     pt.age++;
 
-    let col   = floor(constrain(pt.x / CELL, 0, COLS - 1));
-    let row   = floor(constrain(pt.y / CELL, 0, ROWS - 1));
-    let angle = field[col + row * COLS];
-
+    let col = floor(constrain(pt.x / CELL, 0, COLS - 1));
+    let row = floor(constrain(pt.y / CELL, 0, ROWS - 1));
+    let angle = flowField[col + row * COLS];
     let spd = (0.5 + noise(pt.x * 0.005, pt.y * 0.005, t) * 1.5) * SPEED * 0.22;
 
     pt.vx = pt.vx * 0.82 + cos(angle) * spd;
@@ -148,73 +141,62 @@ function updateParticles(pts, field, trail, t, colorMode) {
     pt.x += pt.vx;
     pt.y += pt.vy;
 
-    // 边界 & 寿命检查
     let dx = pt.x - W / 2;
     let dy = pt.y - H / 2;
-    let d  = sqrt(dx * dx + dy * dy);
-    if (d > 178 || pt.x < 5 || pt.x > W - 5 || pt.y < 5 || pt.y > H - 5 || pt.age > pt.maxAge) {
-      resetParticle(pt, pal);
+    let dist = sqrt(dx * dx + dy * dy);
+    let radius = W / 2 - 20;
+
+    if (dist > radius || pt.x < 5 || pt.x > W-5 || pt.y < 5 || pt.y > H-5 || pt.age > pt.maxAge) {
+      resetParticle(pt, pal, W, H);
       continue;
     }
 
-    // 淡入淡出 alpha
     let life = pt.age / pt.maxAge;
     if      (life < 0.15) pt.alpha = life / 0.15;
     else if (life > 0.75) pt.alpha = 1 - (life - 0.75) / 0.25;
     else                  pt.alpha = 1.0;
 
     let c = pt.color;
-    trail.fill(c[0], c[1], c[2], floor(pt.alpha * 180));
-    trail.ellipse(pt.x, pt.y, pt.size * (0.7 + pt.alpha * 0.8));
+    pg.fill(c[0], c[1], c[2], floor(pt.alpha * 180));
+    pg.ellipse(pt.x, pt.y, pt.size * (0.7 + pt.alpha * 0.8));
   }
 }
 
-// ============================================================
-//  makeParticle / resetParticle
-// ============================================================
-function makeParticle(colorMode) {
-  let pal   = PALETTES[colorMode];
+function makeParticle(pal, W, H) {
   let angle = random(TWO_PI);
-  let r     = random(0, 155);
+  let r = random(0, W/2 - 15);
   return {
     x:      W / 2 + r * cos(angle),
     y:      H / 2 + r * sin(angle),
-    vx:     0,
-    vy:     0,
+    vx: 0, vy: 0,
     age:    random(0, 150),
     maxAge: random(100, 260),
-    size:   random(1.5, 4.0),
+    size:   random(0.5, 2.0),
     alpha:  0,
     color:  pal[floor(random(pal.length))],
   };
 }
 
-function resetParticle(pt, pal) {
+function resetParticle(pt, pal, W, H) {
   let angle = random(TWO_PI);
-  let r     = random(10, 150);
+  let r = random(5, W/2 - 15);
   pt.x      = W / 2 + r * cos(angle);
   pt.y      = H / 2 + r * sin(angle);
-  pt.vx     = 0;
-  pt.vy     = 0;
+  pt.vx = 0; pt.vy = 0;
   pt.age    = 0;
   pt.maxAge = random(100, 260);
-  pt.size   = random(1.5, 4.0);
+  pt.size   = random(0.5, 2.0);
   pt.alpha  = 0;
   pt.color  = pal[floor(random(pal.length))];
 }
 
-// ============================================================
-//  键盘 & 窗口
-// ============================================================
-function keyPressed() {
-  switch (key) {
-    case "c": pMapper.toggleCalibration(); break;
-    case "f": fullscreen(!fullscreen());   break;
-    case "l": pMapper.load("map.json");    break;
-    case "s": pMapper.save("map.json");    break;
-  }
-}
-
 function windowResized() {
   resizeCanvas(windowWidth, windowHeight);
+}
+
+function keyPressed() {
+  if (key === 'f') {
+    let fs = fullscreen();
+    fullscreen(!fs);
+  }
 }
